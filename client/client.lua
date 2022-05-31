@@ -3,7 +3,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local GarageLocation = {}
 local inGarageStation = false
 currentgarage = 0
-local nearspawnpoint = 0
+nearspawnpoint = 0
 
 for k, v in pairs(Config.JobGarages) do
      GarageLocation[k] = PolyZone:Create(v.zones, {
@@ -558,46 +558,7 @@ CreateThread(function() -- Check if the player is in the garage area or not
 end)
 
 
-local function doCarDamage(currentVehicle, veh)
-     local engine = veh.engine + 0.0
-     local body = veh.body + 0.0
 
-     Wait(100)
-     if body < 900.0 then
-          SmashVehicleWindow(currentVehicle, 0)
-          SmashVehicleWindow(currentVehicle, 1)
-          SmashVehicleWindow(currentVehicle, 2)
-          SmashVehicleWindow(currentVehicle, 3)
-          SmashVehicleWindow(currentVehicle, 4)
-          SmashVehicleWindow(currentVehicle, 5)
-          SmashVehicleWindow(currentVehicle, 6)
-          SmashVehicleWindow(currentVehicle, 7)
-     end
-     if body < 800.0 then
-          SetVehicleDoorBroken(currentVehicle, 0, true)
-          SetVehicleDoorBroken(currentVehicle, 1, true)
-          SetVehicleDoorBroken(currentVehicle, 2, true)
-          SetVehicleDoorBroken(currentVehicle, 3, true)
-          SetVehicleDoorBroken(currentVehicle, 4, true)
-          SetVehicleDoorBroken(currentVehicle, 5, true)
-          SetVehicleDoorBroken(currentVehicle, 6, true)
-     end
-     if engine < 700.0 then
-          SetVehicleTyreBurst(currentVehicle, 1, false, 990.0)
-          SetVehicleTyreBurst(currentVehicle, 2, false, 990.0)
-          SetVehicleTyreBurst(currentVehicle, 3, false, 990.0)
-          SetVehicleTyreBurst(currentVehicle, 4, false, 990.0)
-     end
-     if engine < 500.0 then
-          SetVehicleTyreBurst(currentVehicle, 0, false, 990.0)
-          SetVehicleTyreBurst(currentVehicle, 5, false, 990.0)
-          SetVehicleTyreBurst(currentVehicle, 6, false, 990.0)
-          SetVehicleTyreBurst(currentVehicle, 7, false, 990.0)
-     end
-     SetVehicleEngineHealth(currentVehicle, engine)
-     SetVehicleBodyHealth(currentVehicle, body)
-
-end
 
 -- --Garage Thread
 -- CreateThread(function()

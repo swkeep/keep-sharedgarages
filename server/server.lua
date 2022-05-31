@@ -95,6 +95,35 @@ QBCore.Functions.CreateCallback('keep-jobgarages:server:fetch_categories', funct
      cb(tmp)
 end)
 
+
+RegisterNetEvent("keep-jobgarages:server:update_state", function(plate, properties)
+     local src = source
+     local STATE = MySQL.Sync.fetchScalar('SELECT state FROM keep_garage WHERE plate = ?', { plate })
+     if STATE == 0 then
+          -- save damages too
+          if properties ~= nil then
+               MySQL.Async.execute('UPDATE keep_garage SET state = ?,garage=?,fuel=?,engine = ?,body=? WHERE plate = ?', {
+                    1,
+                    properties.currentgarage,
+                    math.floor(properties.fuelLevel),
+                    math.floor(properties.engineHealth),
+                    math.floor(properties.bodyHealth),
+                    properties.plate
+               }, function(result)
+                    if result == 1 then
+                         TriggerClientEvent('QBCore:Notify', src, 'Vehicle stored successfully', 'success')
+                         return
+                    end
+               end)
+               return
+          end
+          TriggerClientEvent('QBCore:Notify', src, 'Failed to get vehicle', 'error', 2500)
+     else
+          MySQL.Async.execute('UPDATE keep_garage SET state = ? WHERE plate = ?', { 0, plate })
+          TriggerClientEvent('QBCore:Notify', src, 'Vehicle got out successfully', 'success')
+     end
+end)
+
 RegisterNetEvent("qb-customs:server:updateVehicle", function(myCar)
      -- check for player job and grade to allow them to change customize cv
      MySQL.Async.execute('UPDATE player_vehicles SET mods = ? WHERE plate = ?', { json.encode(myCar), myCar.plate })
