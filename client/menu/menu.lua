@@ -93,7 +93,7 @@ function Open:categories(data)
                }
           }
      }
-
+     print(data)
      for key, DISTINCT in pairs(data.DISTINCT) do
           openMenu[#openMenu + 1] = {
                header = get_vehicle_label(DISTINCT.model),
@@ -255,7 +255,8 @@ RegisterCommand('+garage_menu', function()
      if not IsPauseMenuActive() then
           -- save vehicle
           if IsPedInAnyVehicle(PlayerPedId(), false) and Config.AllowledList[1] then
-               Open:save_menu()
+               TriggerEvent('keep-jobgarages:client:newVehicleSetup')
+               -- Open:save_menu()
                return
           end
           -- -- store vehicle
@@ -303,23 +304,6 @@ end)
 
 -- restricted functions
 
-local function saveVehicle()
-     local plyPed = PlayerPedId()
-     local veh = GetVehiclePedIsIn(plyPed, false)
-     local c_car = QBCore.Functions.GetVehicleProperties(veh)
-     if not Config.VehicleWhiteList[currentgarage][tostring(c_car.model)] then return end
-
-     local required_data = {
-          vehicle = c_car,
-          name = 'Sup',
-          hash = GetHashKey(veh),
-          garage = currentgarage,
-          info = Config.VehicleWhiteList[currentgarage][tostring(c_car.model)]
-     }
-     QBCore.Functions.TriggerCallback('keep-jobgarages:server:save_vehicle', function(result)
-          print(result)
-     end, required_data)
-end
 
 function Open:save_menu()
      local openMenu = {

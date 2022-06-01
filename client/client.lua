@@ -557,9 +557,68 @@ CreateThread(function() -- Check if the player is in the garage area or not
      end
 end)
 
+local receivedDoorData = false
+local receivedData = nil
 
+local closeNUI = function()
+     SetNuiFocus(false, false)
+     SendNUIMessage({ type = "newDoorSetup", enable = false })
+     Wait(10)
+     receivedDoorData = nil
+end
 
+RegisterNUICallback('saveNewVehicle', function(data, cb)
+     receivedDoorData = true
+     receivedData = data
+     closeNUI()
+     cb('ok')
+end)
 
+RegisterNUICallback('close', function(data, cb)
+     closeNUI()
+     cb('ok')
+end)
+
+local displayNUIText = function(text)
+     local selectedColor = closestDoor.data.locked and Config.LockedColor or Config.UnlockedColor
+     SendNUIMessage({ type = "display", text = text, color = selectedColor })
+     Wait(1)
+end
+
+local hideNUI = function()
+     SendNUIMessage({ type = "hide" })
+     Wait(1)
+end
+
+local function saveVehicle(receivedDoorData)
+     local plyPed = PlayerPedId()
+     local veh = GetVehiclePedIsIn(plyPed, false)
+     local c_car = QBCore.Functions.GetVehicleProperties(veh)
+     if not Config.VehicleWhiteList[currentgarage][tostring(c_car.model)] then return end
+
+     local required_data = {
+          vehicle = c_car,
+          plate = receivedDoorData.platevalue,
+          name = receivedDoorData.vehiclename,
+          grades = receivedDoorData.grades,
+          cids = receivedDoorData.cids,
+          hash = GetHashKey(veh),
+          garage = currentgarage,
+          info = Config.VehicleWhiteList[currentgarage][tostring(c_car.model)]
+     }
+     QBCore.Functions.TriggerCallback('keep-jobgarages:server:save_vehicle', function(result)
+          print(result)
+     end, required_data)
+end
+
+RegisterNetEvent('keep-jobgarages:client:newVehicleSetup', function()
+     receivedDoorData = false
+     SetNuiFocus(true, true)
+     SendNUIMessage({ type = "newDoorSetup", enable = true })
+     while receivedDoorData == false do Wait(250) DisableAllControlActions(0) end
+     if receivedDoorData == nil then return end
+     saveVehicle(receivedDoorData)
+end)
 -- --Garage Thread
 -- CreateThread(function()
 --      Wait(1000)

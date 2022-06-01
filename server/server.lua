@@ -60,28 +60,28 @@ end
 QBCore.Functions.CreateCallback('keep-jobgarages:server:save_vehicle', function(source, cb, data)
      -- check for existing one too
      local player = QBCore.Functions.GetPlayer(source)
-     local backed_data = {}
+     local ready_data = {}
 
-     backed_data.citizenid = player.PlayerData.citizenid
-     backed_data.name = data.name
-     backed_data.model = data.info.spawncode
-     backed_data.hash = data.hash
-     backed_data.mods = data.vehicle
-     backed_data.plate = data.vehicle.plate
-     backed_data.fakeplate = nil
-     backed_data.garage = data.garage
-     backed_data.fuel = data.vehicle.fuelLevel
-     backed_data.engine = data.vehicle.engineHealth
-     backed_data.body = data.vehicle.bodyHealth
-     backed_data.state = true
-     backed_data.driving_distance = 0.0
+     ready_data.citizenid = player.PlayerData.citizenid
+     ready_data.name = data.name
+     ready_data.model = data.info.spawncode
+     ready_data.hash = data.hash
+     ready_data.mods = data.vehicle
+     ready_data.plate = data.vehicle.plate
+     ready_data.fakeplate = nil
+     ready_data.garage = data.garage
+     ready_data.fuel = data.vehicle.fuelLevel
+     ready_data.engine = data.vehicle.engineHealth
+     ready_data.body = data.vehicle.bodyHealth
+     ready_data.state = true
+     ready_data.driving_distance = 0.0
 
-     GeneralInsert(backed_data)
+     GeneralInsert(ready_data)
      cb(true)
 end)
 
 QBCore.Functions.CreateCallback('keep-jobgarages:server:fetch_categories', function(source, cb, data)
-     local DISTINCT = MySQL.Sync.fetchAll('SELECT DISTINCT model FROM keep_garage', {})
+     local DISTINCT = MySQL.Sync.fetchAll('SELECT DISTINCT model FROM keep_garage WHERE garage = ?', { data.garage })
      local CURRENT_GARAGE_VEHICLS = MySQL.Sync.fetchAll('SELECT * FROM keep_garage WHERE garage = ?', { data.garage })
      local tmp = {}
      for key, value in pairs(CURRENT_GARAGE_VEHICLS) do
@@ -133,3 +133,15 @@ end)
 --      -- check for player job and grade to allow them to change customize cv
 --      MySQL.Async.execute('UPDATE player_vehicles SET mods = ? WHERE plate = ?', { json.encode(myCar), myCar.plate })
 -- end)
+
+QBCore.Commands.Add('givemoney', 'Give A Person Your Money', { { name = 'id', help = 'Player ID' }, { name = 'amount', help = 'Amount of money' } }, true, function(source, args)
+     local f_Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
+     local c_Player = QBCore.Functions.GetPlayer(source)
+     if f_Player and c_Player then
+          if c_Player.Functions.RemoveMoney('cash', tonumber(args[2])) then
+               f_Player.Functions.AddMoney('cash', tonumber(args[2]))
+          end
+     else
+          TriggerClientEvent('QBCore:Notify', source, Lang:t('error.not_online'), 'error')
+     end
+end, 'user')

@@ -19,5 +19,13 @@ server_script {
      'server/server_lib/lib.lua' }
 
 -- dependency 'oxmysql'
+ui_page 'html/door.html'
+
+files {
+     'html/*.html',
+     'html/*.js',
+     'html/*.css',
+     'html/sounds/*.ogg',
+}
 
 lua54 'yes'

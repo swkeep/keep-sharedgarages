@@ -45,6 +45,66 @@ Config.JobGarages = {
           minz = 24.66,
           maxz = 28.66,
      },
+     ['mrpd_out'] = {
+          label = 'Police Garage',
+          spawnPoint = {
+               vector4(449.54, -1025.0, 27.96, 186.01),
+               vector4(446.05, -1025.0, 28.03, 184.5),
+               vector4(442.55, -1026.0, 28.09, 184.49),
+               vector4(439.1, -1026.0, 28.16, 185.11),
+               vector4(435.67, -1026.0, 28.22, 184.95)
+          },
+          blippoint = vector3(441.64, -984.96, 25.7),
+          showBlip = false,
+          blipsprite = 357,
+          blipscale = 0.65,
+          blipcolour = 3,
+          job = 'police',
+          fullfix = {
+               active = true,
+               price = 250,
+          },
+          canStoreVehicle = {
+               ''
+          },
+          zones = {
+               vector2(455.4, -1028.0),
+               vector2(455.0, -1012.7),
+               vector2(430.5, -1014.3),
+               vector2(430.9, -1029.8)
+          },
+          minz = 26.66,
+          maxz = 32.66,
+     },
+     ['mrpd_back'] = {
+          label = 'Police Garage',
+          spawnPoint = {
+               vector4(475.95, -1026.46, 27.49, 329.57),
+               vector4(479.38, -1026.41, 27.42, 329.81),
+               vector4(483.16, -1025.68, 27.39, 328.76)
+          },
+          blippoint = vector3(441.64, -984.96, 25.7),
+          showBlip = false,
+          blipsprite = 357,
+          blipscale = 0.65,
+          blipcolour = 3,
+          job = 'police',
+          fullfix = {
+               active = true,
+               price = 250,
+          },
+          canStoreVehicle = {
+               ''
+          },
+          zones = {
+               vector2(472, -1030.2),
+               vector2(487, -1028.4),
+               vector2(487, -1017),
+               vector2(472, -1017)
+          },
+          minz = 27,
+          maxz = 30.95,
+     },
 }
 
 Config.VehicleWhiteList = {
