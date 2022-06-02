@@ -12,7 +12,7 @@
 #container {
     width: 30vw;
     position: absolute;
-    top: 40vh;
+    top: 35vh;
     display: flex;
     flex-flow: row;
     flex-wrap: wrap;
@@ -24,20 +24,21 @@
     position: relative;
     padding: 0.9vh;
     width: fit-content;
-    border-radius: .4vh;
+    border-radius: .6vh;
     font-family: "Staatliches";
     font-size: 1.7vh;
     float: left;
-    color: #fff;
+    color: rgb(0, 0, 0);
     right: 13vh;
+    text-shadow: 0px 0px 5px #CECECE;
 }
 
 .slide-in {
-    animation: slide-in 1s forwards;
+    animation: slide-in 0.3s forwards;
 }
 
 .slide-out {
-    animation: slide-out 1s forwards;
+    animation: slide-out 0.3s forwards;
 }
 
 @keyframes slide-in {

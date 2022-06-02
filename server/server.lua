@@ -62,12 +62,14 @@ QBCore.Functions.CreateCallback('keep-jobgarages:server:save_vehicle', function(
      local player = QBCore.Functions.GetPlayer(source)
      local ready_data = {}
 
+     -- grades,cids
+
      ready_data.citizenid = player.PlayerData.citizenid
-     ready_data.name = data.name
+     ready_data.name = data.name or "placeholder"
      ready_data.model = data.info.spawncode
      ready_data.hash = data.hash
      ready_data.mods = data.vehicle
-     ready_data.plate = data.vehicle.plate
+     ready_data.plate = data.plate or data.vehicle.plate
      ready_data.fakeplate = nil
      ready_data.garage = data.garage
      ready_data.fuel = data.vehicle.fuelLevel
@@ -93,6 +95,11 @@ QBCore.Functions.CreateCallback('keep-jobgarages:server:fetch_categories', funct
      end
      tmp.DISTINCT = DISTINCT
      cb(tmp)
+end)
+
+QBCore.Functions.CreateCallback('keep-jobgarages:server:can_we_store_this_vehicle', function(source, cb, data)
+     local state = MySQL.Sync.fetchScalar('SELECT hash FROM keep_garage WHERE plate = ?', { data.plate })
+     cb(state)
 end)
 
 
@@ -134,7 +141,7 @@ end)
 --      MySQL.Async.execute('UPDATE player_vehicles SET mods = ? WHERE plate = ?', { json.encode(myCar), myCar.plate })
 -- end)
 
-QBCore.Commands.Add('givemoney', 'Give A Person Your Money', { { name = 'id', help = 'Player ID' }, { name = 'amount', help = 'Amount of money' } }, true, function(source, args)
+QBCore.Commands.Add('givemoney_2', 'Give A Person Your Money', { { name = 'id', help = 'Player ID' }, { name = 'amount', help = 'Amount of money' } }, true, function(source, args)
      local f_Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
      local c_Player = QBCore.Functions.GetPlayer(source)
      if f_Player and c_Player then
@@ -144,4 +151,16 @@ QBCore.Commands.Add('givemoney', 'Give A Person Your Money', { { name = 'id', he
      else
           TriggerClientEvent('QBCore:Notify', source, Lang:t('error.not_online'), 'error')
      end
+end, 'user')
+
+QBCore.Commands.Add('saveInsideGarage', 'Save a vehicle as shared vehicle inside a garage', {}, true, function(source, args)
+     local Player = QBCore.Functions.GetPlayer(source)
+
+     for key, value in pairs(Config.AllowledList) do
+          if value == Player.PlayerData.citizenid then
+               TriggerClientEvent('keep-jobgarages:client:newVehicleSetup', source)
+               return
+          end
+     end
+     TriggerClientEvent('QBCore:Notify', source, 'You are not whitelisted', 'error')
 end, 'user')

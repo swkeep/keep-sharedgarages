@@ -4,6 +4,38 @@ Config.AllowledList = {
      'RGZ12054'
 }
 
+Config.VehicleWhiteList = {
+     ['default'] = {
+          ['-1716760427'] = {
+               name = 'CGT',
+               spawncode = 'cgt',
+          },
+          ['-901056903'] = {
+               name = 'Nopixel Vic',
+               spawncode = 'npolvic',
+          },
+          ['1947925897'] = {
+               name = 'Rhino',
+               spawncode = 'bcat',
+          },
+          ['719025956'] = {
+               name = 'Ford Explorer',
+               spawncode = 'npolexp',
+          },
+          ['-1109563416'] = {
+               name = 'Interceptor Corvette',
+               spawncode = 'npolvette',
+          },
+
+     },
+     ['heli'] = {
+          ['-1804332227'] = {
+               name = 'AS350',
+               spawncode = 'polas350',
+          },
+     }
+}
+
 Config.JobGarages = {
      --Job Garage:
      ['mrpd'] = {
@@ -37,13 +69,16 @@ Config.JobGarages = {
                ''
           },
           zones = {
-               vector2(423.16, -1000.29),
-               vector2(463.7, -1000.29),
-               vector2(463.7, -973.04),
-               vector2(423.16, -973.04),
+               vector2(423, -1000),
+               vector2(450, -999),
+               vector2(449, -983),
+               vector2(428, -982),
+               vector2(428, -973),
+               vector2(423, -973)
           },
           minz = 24.66,
           maxz = 28.66,
+          WhiteList = Config.VehicleWhiteList.default
      },
      ['mrpd_out'] = {
           label = 'Police Garage',
@@ -68,13 +103,14 @@ Config.JobGarages = {
                ''
           },
           zones = {
-               vector2(455.4, -1028.0),
-               vector2(455.0, -1012.7),
-               vector2(430.5, -1014.3),
-               vector2(430.9, -1029.8)
+               vector2(455, -1027.8),
+               vector2(455, -1020),
+               vector2(430, -1020),
+               vector2(430, -1030.9)
           },
           minz = 26.66,
           maxz = 32.66,
+          WhiteList = Config.VehicleWhiteList.default
      },
      ['mrpd_back'] = {
           label = 'Police Garage',
@@ -104,28 +140,35 @@ Config.JobGarages = {
           },
           minz = 27,
           maxz = 30.95,
+          WhiteList = Config.VehicleWhiteList.default
+     },
+     ['mrpd_heli_pad'] = {
+          label = 'Police Heli Pad',
+          spawnPoint = {
+               vector4(449.22, -981.24, 43.69, 91.21)
+          },
+          blippoint = vector3(441.64, -984.96, 25.7),
+          showBlip = false,
+          blipsprite = 357,
+          blipscale = 0.65,
+          blipcolour = 3,
+          job = 'police',
+          fullfix = {
+               active = true,
+               price = 250,
+          },
+          canStoreVehicle = {
+               ''
+          },
+          zones = {
+               vector2(459.4, -975.1),
+               vector2(441.9, -974.7),
+               vector2(442.1, -988.7),
+               vector2(459.5, -989.1)
+          },
+          minz = 42.5,
+          maxz = 50.95,
+          WhiteList = Config.VehicleWhiteList.heli
      },
 }
-
-Config.VehicleWhiteList = {
-     ['mrpd'] = {
-          ['-1716760427'] = {
-               name = 'CGT',
-               spawncode = 'cgt',
-          },
-          ['-901056903'] = {
-               name = 'Nopixel Vic',
-               spawncode = 'npolvic',
-          },
-          ['1947925897'] = {
-               name = 'Rhino',
-               spawncode = 'bcat',
-          },
-          ['719025956'] = {
-               name = 'Ford Explorer',
-               spawncode = 'npolexp',
-          },
-     }
-}
-
 -- edit menu too

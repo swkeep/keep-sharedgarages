@@ -2,443 +2,12 @@ local QBCore = exports['qb-core']:GetCoreObject()
 
 local GarageLocation = {}
 local inGarageStation = false
-currentgarage = 0
-nearspawnpoint = 0
-
-for k, v in pairs(Config.JobGarages) do
-     GarageLocation[k] = PolyZone:Create(v.zones, {
-          name = 'GarageStation ' .. k,
-          minZ = v.minz,
-          maxZ = v.maxz,
-          debugPoly = true
-     })
-end
-
-local function SetVehicleModifications(vehicle, props) -- Apply all modifications to a vehicle entity
-     if DoesEntityExist(vehicle) then
-          SetVehicleModKit(vehicle, 0)
-          -- plate:
-          if props.plate then
-               SetVehicleNumberPlateText(vehicle, props.plate)
-          end
-          if props.plateIndex then
-               SetVehicleNumberPlateTextIndex(vehicle, props.plateIndex)
-          end
-          -- lockStatus:
-          if props.lockstatus then
-               SetVehicleDoorsLocked(vehicle, props.lockstatus)
-          end
-          -- colours:
-          if props.color1 and props.color2 then
-               SetVehicleColours(vehicle, props.color1, props.color2)
-          end
-          if props.customprimarycolor then
-               SetVehicleCustomPrimaryColour(vehicle, props.customprimarycolor.r, props.customprimarycolor.g, props.customprimarycolor.b)
-          end
-          if props.customsecondarycolor then
-               SetVehicleCustomSecondaryColour(vehicle, props.customsecondarycolor.r, props.customsecondarycolor.g, props.customsecondarycolor.b)
-          end
-          if props.interiorColor then
-               SetVehicleInteriorColor(vehicle, props.interiorColor)
-          end
-          if props.dashboardColor then
-               SetVehicleDashboardColour(vehicle, props.dashboardColor)
-          end
-          if props.pearlescentColor and props.wheelColor then
-               SetVehicleExtraColours(vehicle, props.pearlescentColor, props.wheelColor)
-          end
-          if props.tyreSmokeColor then
-               SetVehicleTyreSmokeColor(vehicle, props.tyreSmokeColor[1], props.tyreSmokeColor[2], props.tyreSmokeColor[3])
-          end
-          -- wheels:
-          if props.wheels then
-               SetVehicleWheelType(vehicle, props.wheels)
-          end
-          -- windows:
-          if props.windowTint then
-               SetVehicleWindowTint(vehicle, props.windowTint)
-          end
-          -- neonlight:
-          if props.neonEnabled then
-               SetVehicleNeonLightEnabled(vehicle, 0, props.neonEnabled[1])
-               SetVehicleNeonLightEnabled(vehicle, 1, props.neonEnabled[2])
-               SetVehicleNeonLightEnabled(vehicle, 2, props.neonEnabled[3])
-               SetVehicleNeonLightEnabled(vehicle, 3, props.neonEnabled[4])
-          end
-          if props.neonColor then
-               SetVehicleNeonLightsColour(vehicle, props.neonColor[1], props.neonColor[2], props.neonColor[3])
-          end
-          -- mods:
-          if props.modSpoilers then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 0, props.modSpoilers, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 0, props.modSpoilers, false)
-               end
-          end
-          if props.modFrontBumper then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 1, props.modFrontBumper, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 1, props.modFrontBumper, false)
-               end
-          end
-          if props.modRearBumper then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 2, props.modRearBumper, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 2, props.modRearBumper, false)
-               end
-          end
-          if props.modSideSkirt then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 3, props.modSideSkirt, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 3, props.modSideSkirt, false)
-               end
-          end
-          if props.modExhaust then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 4, props.modExhaust, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 4, props.modExhaust, false)
-               end
-          end
-          if props.modFrame then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 5, props.modFrame, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 5, props.modFrame, false)
-               end
-          end
-          if props.modGrille then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 6, props.modGrille, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 6, props.modGrille, false)
-               end
-          end
-          if props.modHood then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 7, props.modHood, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 7, props.modHood, false)
-               end
-          end
-          if props.modFender then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 8, props.modFender, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 8, props.modFender, false)
-               end
-          end
-          if props.modRightFender then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 9, props.modRightFender, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 9, props.modRightFender, false)
-               end
-          end
-          if props.modRoof then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 10, props.modRoof, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 10, props.modRoof, false)
-               end
-          end
-          if props.modEngine then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 11, props.modEngine, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 11, props.modEngine, false)
-               end
-          end
-          if props.modBrakes then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 12, props.modBrakes, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 12, props.modBrakes, false)
-               end
-          end
-          if props.modTransmission then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 13, props.modTransmission, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 13, props.modTransmission, false)
-               end
-          end
-          if props.modHorns then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 14, props.modHorns, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 14, props.modHorns, false)
-               end
-          end
-          if props.modSuspension then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 15, props.modSuspension, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 15, props.modSuspension, false)
-               end
-          end
-          if props.modArmor then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 16, props.modArmor, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 16, props.modArmor, false)
-               end
-          end
-          if props.modTurbo then
-               ToggleVehicleMod(vehicle, 18, props.modTurbo)
-          end
-          if props.modSmokeEnabled then
-               ToggleVehicleMod(vehicle, 20, props.modSmokeEnabled)
-          end
-          if props.modXenon then
-               ToggleVehicleMod(vehicle, 22, props.modXenon)
-          end
-          if props.modFrontWheels then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 23, props.modFrontWheels, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 23, props.modFrontWheels, false)
-               end
-          end
-          if props.modBackWheels then
-               if props.modCustomTiresR then
-                    SetVehicleMod(vehicle, 24, props.modBackWheels, props.modCustomTiresR)
-               else
-                    SetVehicleMod(vehicle, 24, props.modBackWheels, false)
-               end
-          end
-          if props.modPlateHolder then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 25, props.modPlateHolder, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 25, props.modPlateHolder, false)
-               end
-          end
-          if props.modVanityPlate then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 26, props.modVanityPlate, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 26, props.modVanityPlate, false)
-               end
-          end
-          if props.modTrimA then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 27, props.modTrimA, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 27, props.modTrimA, false)
-               end
-          end
-          if props.modOrnaments then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 28, props.modOrnaments, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 28, props.modOrnaments, false)
-               end
-          end
-          if props.modDashboard then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 29, props.modDashboard, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 29, props.modDashboard, false)
-               end
-          end
-          if props.modDial then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 30, props.modDial, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 30, props.modDial, false)
-               end
-          end
-          if props.modDoorSpeaker then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 31, props.modDoorSpeaker, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 31, props.modDoorSpeaker, false)
-               end
-          end
-          if props.modSeats then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 32, props.modSeats, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 32, props.modSeats, false)
-               end
-          end
-          if props.modSteeringWheel then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 33, props.modSteeringWheel, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 33, props.modSteeringWheel, false)
-               end
-          end
-          if props.modShifterLeavers then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 34, props.modShifterLeavers, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 34, props.modShifterLeavers, false)
-               end
-          end
-          if props.modAPlate then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 35, props.modAPlate, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 35, props.modAPlate, false)
-               end
-          end
-          if props.modSpeakers then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 36, props.modSpeakers, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 36, props.modSpeakers, false)
-               end
-          end
-          if props.modTrunk then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 37, props.modTrunk, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 37, props.modTrunk, false)
-               end
-          end
-          if props.modHydrolic then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 38, props.modHydrolic, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 38, props.modHydrolic, false)
-               end
-          end
-          if props.modEngineBlock then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 39, props.modEngineBlock, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 39, props.modEngineBlock, false)
-               end
-          end
-          if props.modAirFilter then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 40, props.modAirFilter, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 40, props.modAirFilter, false)
-               end
-          end
-          if props.modStruts then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 41, props.modStruts, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 41, props.modStruts, false)
-               end
-          end
-          if props.modArchCover then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 42, props.modArchCover, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 42, props.modArchCover, false)
-               end
-          end
-          if props.modAerials then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 43, props.modAerials, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 43, props.modAerials, false)
-               end
-          end
-          if props.modTrimB then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 44, props.modTrimB, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 44, props.modTrimB, false)
-               end
-          end
-          if props.modTank then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 45, props.modTank, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 45, props.modTank, false)
-               end
-          end
-          if props.modWindows then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 46, props.modWindows, props.modCustomTiresF)
-               else
-                    SetVehicleMod(vehicle, 46, props.modWindows, false)
-               end
-          end
-          if props.modLivery then
-               if props.modCustomTiresF then
-                    SetVehicleMod(vehicle, 48, props.modLivery, props.modCustomTiresF)
-                    SetVehicleLivery(vehicle, props.modLivery)
-               else
-                    SetVehicleMod(vehicle, 48, props.modLivery, false)
-                    SetVehicleLivery(vehicle, props.modLivery)
-               end
-          end
-          -- extras:
-          if props.extras then
-               for id, enabled in pairs(props.extras) do
-                    if enabled then
-                         SetVehicleExtra(vehicle, tonumber(id), 0)
-                    else
-                         SetVehicleExtra(vehicle, tonumber(id), 1)
-                    end
-               end
-          end
-          -- stats:
-          if props.health then
-               SetEntityHealth(vehicle, props.health + 0.0)
-          end
-          if props.bodyHealth then
-               SetVehicleBodyHealth(vehicle, props.bodyHealth + 0.0)
-          end
-          if props.engineHealth then
-               SetVehicleEngineHealth(vehicle, props.engineHealth + 0.0)
-          end
-          if props.engineHealth and renderScorched and props.engineHealth < -3999.0 then
-               TriggerServerEvent('MojiaGarages:server:renderScorched', NetworkGetNetworkIdFromEntity(vehicle), true)
-          end
-          if props.tankHealth then
-               SetVehiclePetrolTankHealth(vehicle, props.tankHealth + 0.0)
-          end
-          if props.tankHealth and renderScorched and props.tankHealth < -999.0 then
-               TriggerServerEvent('MojiaGarages:server:renderScorched', NetworkGetNetworkIdFromEntity(vehicle), true)
-          end
-          if props.dirtLevel then
-               SetVehicleDirtLevel(vehicle, props.dirtLevel + 0.0)
-          end
-          if props.fuelLevel then
-               SetVehicleFuelLevel(vehicle, props.fuelLevel + 0.0)
-          end
-          -- doors:
-          if props.doorsmissing then
-               for id, state in pairs(props.doorsmissing) do
-                    if state then
-                         SetVehicleDoorBroken(vehicle, tonumber(id), state)
-
-                    end
-               end
-          end
-          -- tires
-          SetVehicleTyresCanBurst(vehicle, not props.bulletprooftires)
-          if not props.bulletprooftires and props.tiresburst then
-               for id, state in pairs(props.tiresburst) do
-                    SetVehicleTyreBurst(vehicle, tonumber(id), state, 1000.0)
-               end
-          end
-          -- windows:
-          if props.windowsbroken then
-               for id, state in pairs(props.windowsbroken) do
-                    if not state then
-                         SmashVehicleWindow(vehicle, tonumber(id))
-                    end
-               end
-          end
-          -- xenon lights:
-          if props.xenonColor then
-               SetVehicleXenonLightsColor(vehicle, props.xenonColor)
-          end
-     end
-end
+local currentgarage = 0
+local nearspawnpoint = 0
+local PlayerJob = {}
+local onDuty = false
+local receivedDoorData = false
+local receivedData = nil
 
 -- Events
 local function isVehicleExistInRealLife(plate)
@@ -480,29 +49,6 @@ local function IsSpawnPointClear(coords, maxDistance) -- Check the spawn point t
      return #GetVehiclesInArea(coords, maxDistance) == 0
 end
 
-RegisterNetEvent('MojiaGarages:client:spawnOutsiteVehicle', function(properties)
-     if properties then
-          if properties.modifications then
-               if isVehicleExistInRealLife(properties.modifications.plate) then
-               else
-                    if IsSpawnPointClear(properties.position, 2.5) then
-                         QBCore.Functions.SpawnVehicle(properties.model, function(veh)
-                              SetVehicleModifications(veh, properties.modifications)
-                              SetEntityRotation(veh, properties.rotation)
-                              exports['LegacyFuel']:SetFuel(veh, properties.modifications.fuelLevel)
-                         end, properties.position, true)
-                    else
-                         local vehcheck = QBCore.Functions.GetClosestVehicle(properties.position)
-                         local platecheck = QBCore.Functions.GetPlate(vehcheck)
-                         if vehcheck ~= nil and NetworkGetEntityIsNetworked(vehcheck) and DoesEntityExist(vehcheck) then
-
-                         end
-                    end
-               end
-          end
-     end
-end)
-
 local function GetNearSpawnPoint() -- Get nearest spawn point
      local near = nil
      local distance = 50
@@ -522,11 +68,24 @@ local function GetNearSpawnPoint() -- Get nearest spawn point
      return near
 end
 
+local displayNUIText = function(text)
+     SendNUIMessage({ type = "display", text = text, color = '#f2b502' })
+     Wait(1)
+end
+
+local hideNUI = function()
+     SendNUIMessage({ type = "hide" })
+     Wait(1)
+end
+
 CreateThread(function() -- Get nearest spawn point
      while true do
           Wait(1000)
-          if inGarageStation and currentgarage ~= nil then
+          if IsOnDuty() and GetJobInfo().name == 'police' and inGarageStation and currentgarage ~= nil then
                nearspawnpoint = GetNearSpawnPoint()
+               displayNUIText('Parking')
+          else
+               hideNUI()
           end
      end
 end)
@@ -557,9 +116,6 @@ CreateThread(function() -- Check if the player is in the garage area or not
      end
 end)
 
-local receivedDoorData = false
-local receivedData = nil
-
 local closeNUI = function()
      SetNuiFocus(false, false)
      SendNUIMessage({ type = "newDoorSetup", enable = false })
@@ -567,9 +123,56 @@ local closeNUI = function()
      receivedDoorData = nil
 end
 
+local function isWhitelisted(currentgarage, model)
+     if type(model) == "number" then model = tostring(model) end
+     local list = Config.JobGarages[currentgarage].WhiteList
+     if not list then return end
+     for key, value in pairs(list) do
+          if key == model then
+               return true, value
+          end
+     end
+     return false
+end
+
+local function saveVehicle(d)
+     local plyPed = PlayerPedId()
+     local veh = GetVehiclePedIsIn(plyPed, false)
+     local c_car = QBCore.Functions.GetVehicleProperties(veh)
+     local state, info = isWhitelisted(currentgarage, c_car.model)
+     if not state then
+          QBCore.Functions.Notify('Could not store this vehicle', 'error', 5000)
+          return false
+     end
+
+     local required_data = {
+          vehicle = c_car,
+          plate = d.platevalue,
+          name = d.vehiclename,
+          grades = d.grades,
+          cids = d.cids,
+          hash = GetHashKey(veh),
+          garage = currentgarage,
+          info = info
+     }
+     QBCore.Functions.TriggerCallback('keep-jobgarages:server:save_vehicle', function(result)
+          if IsPedInAnyVehicle(plyPed, false) then
+               TaskLeaveVehicle(plyPed, veh, 0)
+               while IsPedInAnyVehicle(plyPed, false) do
+                    Wait(100)
+               end
+               QBCore.Functions.DeleteVehicle(veh)
+          end
+     end, required_data)
+end
+
 RegisterNUICallback('saveNewVehicle', function(data, cb)
      receivedDoorData = true
      receivedData = data
+     if saveVehicle(receivedData) == false then
+          cb(false)
+
+     end
      closeNUI()
      cb('ok')
 end)
@@ -579,61 +182,83 @@ RegisterNUICallback('close', function(data, cb)
      cb('ok')
 end)
 
-local displayNUIText = function(text)
-     local selectedColor = closestDoor.data.locked and Config.LockedColor or Config.UnlockedColor
-     SendNUIMessage({ type = "display", text = text, color = selectedColor })
-     Wait(1)
-end
-
-local hideNUI = function()
-     SendNUIMessage({ type = "hide" })
-     Wait(1)
-end
-
-local function saveVehicle(receivedDoorData)
-     local plyPed = PlayerPedId()
-     local veh = GetVehiclePedIsIn(plyPed, false)
-     local c_car = QBCore.Functions.GetVehicleProperties(veh)
-     if not Config.VehicleWhiteList[currentgarage][tostring(c_car.model)] then return end
-
-     local required_data = {
-          vehicle = c_car,
-          plate = receivedDoorData.platevalue,
-          name = receivedDoorData.vehiclename,
-          grades = receivedDoorData.grades,
-          cids = receivedDoorData.cids,
-          hash = GetHashKey(veh),
-          garage = currentgarage,
-          info = Config.VehicleWhiteList[currentgarage][tostring(c_car.model)]
-     }
-     QBCore.Functions.TriggerCallback('keep-jobgarages:server:save_vehicle', function(result)
-          print(result)
-     end, required_data)
-end
-
 RegisterNetEvent('keep-jobgarages:client:newVehicleSetup', function()
+     local plyPed = PlayerPedId()
+     if not IsPedInAnyVehicle(plyPed, false) then
+          QBCore.Functions.Notify('Your should be inside a vehicle to use this command', 'error', 5000)
+          return
+     end
      receivedDoorData = false
      SetNuiFocus(true, true)
      SendNUIMessage({ type = "newDoorSetup", enable = true })
      while receivedDoorData == false do Wait(250) DisableAllControlActions(0) end
      if receivedDoorData == nil then return end
-     saveVehicle(receivedDoorData)
 end)
--- --Garage Thread
--- CreateThread(function()
---      Wait(1000)
---      while true do
---           local sleep = 1000
---           if inGarage and PlayerJob.name == "police" then
---                -- if onDuty then sleep = 250 end
---                if IsPedInAnyVehicle(PlayerPedId(), false) then
---                     if IsControlJustReleased(0, 38) then
---                          QBCore.Functions.DeleteVehicle(GetVehiclePedIsIn(PlayerPedId()))
---                     end
---                end
---           else
---                sleep = 1000
---           end
---           Wait(sleep)
---      end
--- end)
+
+
+AddEventHandler('onResourceStart', function(resourceName)
+     if resourceName == GetCurrentResourceName() then
+          QBCore.Functions.GetPlayerData(function(PlayerData)
+               PlayerJob = PlayerData.job
+               if PlayerJob.name == 'police' then
+                    onDuty = PlayerData.job.onduty
+               end
+          end)
+          for k, v in pairs(Config.JobGarages) do
+               GarageLocation[k] = PolyZone:Create(v.zones, {
+                    name = 'GarageStation ' .. k,
+                    minZ = v.minz,
+                    maxZ = v.maxz,
+                    debugPoly = false
+               })
+          end
+     end
+end)
+
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+     QBCore.Functions.GetPlayerData(function(PlayerData)
+          PlayerJob = PlayerData.job
+          if PlayerJob.name == 'police' then
+               onDuty = PlayerData.job.onduty
+          end
+     end)
+end)
+
+RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
+     PlayerJob = JobInfo
+     if PlayerJob.name == 'police' then
+          onDuty = PlayerJob.onduty
+          if PlayerJob.onduty then
+               TriggerServerEvent("hospital:server:AddDoctor", PlayerJob.name)
+          else
+               TriggerServerEvent("hospital:server:RemoveDoctor", PlayerJob.name)
+          end
+     end
+end)
+
+
+RegisterNetEvent('QBCore:Client:SetDuty', function(duty)
+     if PlayerJob.name == 'police' and duty ~= onDuty then
+          onDuty = duty
+     end
+end)
+
+function IsOnDuty()
+     return onDuty
+end
+
+function GetJobInfo()
+     return PlayerJob
+end
+
+function GetNearspawnpoint()
+     return nearspawnpoint
+end
+
+function GetCurrentgarage()
+     return currentgarage
+end
+
+function GetInGarageStation()
+     return inGarageStation
+end
