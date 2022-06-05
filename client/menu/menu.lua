@@ -196,7 +196,6 @@ function Open:vehicle_actions_menu(data)
           QBCore.Functions.Notify('Vehicle is already out!', 'error', 2500)
           -- check if this player is toke this vehicle out if yes then show menu else go back to last menu
           QBCore.Functions.TriggerCallback('keep-jobgarages:server:is_this_thePlayer_that_has_vehicle', function(result)
-               print(result)
                if result then
                     take_out_menu(data, vehicle, nil, {
                          active = true,
@@ -437,9 +436,15 @@ AddEventHandler('keep-jobgarages:menu:open:vehicle_parking_log', function(option
 end)
 
 AddEventHandler('keep-jobgarages:client:take_out', function(data)
+     local plate = QBCore.Functions.GetPlate(data.vehicle)
      FreezeEntityPosition(data.vehicle, false)
      SetEntityAsMissionEntity(data.vehicle, true, true)
      TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(data.vehicle))
+     QBCore.Functions.TriggerCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(result)
+          for key, id in pairs(result) do
+               TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys_2', plate, id)
+          end
+     end)
      exports['LegacyFuel']:SetFuel(data.vehicle, data.fuel)
      TriggerServerEvent('keep-jobgarages:server:update_state', data.plate, data)
 end)

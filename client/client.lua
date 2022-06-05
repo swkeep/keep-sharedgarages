@@ -300,7 +300,7 @@ RegisterNetEvent('onResourceStart', function(resourceName)
                     name = 'GarageStation ' .. k,
                     minZ = v.minz,
                     maxZ = v.maxz,
-                    debugPoly = true
+                    debugPoly = false
                })
           end
      end

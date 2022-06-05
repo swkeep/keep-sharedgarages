@@ -235,10 +235,6 @@ RegisterNetEvent("keep-jobgarages:server:retrive_vehicle", function(plate)
      end
 end)
 
-RegisterNetEvent("qb-customs:server:updateVehicle", function(myCar)
-     MySQL.Async.execute('UPDATE player_vehicles SET mods = ? WHERE plate = ?', { json.encode(myCar), myCar.plate })
-end)
-
 QBCore.Commands.Add('saveInsideGarage', 'Save a vehicle as shared vehicle inside a garage', {}, true, function(source, args)
      local Player = QBCore.Functions.GetPlayer(source)
 
@@ -250,3 +246,15 @@ QBCore.Commands.Add('saveInsideGarage', 'Save a vehicle as shared vehicle inside
      end
      TriggerClientEvent('QBCore:Notify', source, 'You are not whitelisted', 'error')
 end, 'user')
+
+QBCore.Functions.CreateCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(source, cb)
+     local players = QBCore.Functions.GetPlayers()
+     local tmp = {}
+     for key, id in pairs(players) do
+          local player = QBCore.Functions.GetPlayer(id)
+          if player.PlayerData.job.name == 'police' then
+               tmp[#tmp + 1] = id
+          end
+     end
+     cb(tmp)
+end)
