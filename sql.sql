@@ -12,7 +12,17 @@ CREATE TABLE IF NOT EXISTS `keep_garage` (
   `engine` FLOAT DEFAULT NULL,
   `body` FLOAT DEFAULT NULL,
   `state` INT(11) DEFAULT NULL,
-  `driving_distance` INT(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `citizenid` (`citizenid`)
+  KEY `plate` (`plate`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `keep_garage_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `plate` varchar(50) DEFAULT NULL,
+  `action` varchar(50) DEFAULT NULL,
+  `citizenid` varchar(50) DEFAULT NULL,
+  `data` TEXT DEFAULT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `plate` (`plate`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;

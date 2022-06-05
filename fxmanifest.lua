@@ -11,7 +11,9 @@ shared_script {
 client_scripts {
      '@PolyZone/client.lua',
      'client/client.lua',
-     'client/menu/menu.lua' }
+     'client/menu/menu.lua',
+     'client/menu/functions.lua',
+}
 
 server_script {
      '@oxmysql/lib/MySQL.lua',
