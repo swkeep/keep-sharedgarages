@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS `keep_garage` (
   `hash` varchar(50) DEFAULT NULL,
   `mods` LONGTEXT NOT NULL DEFAULT '0',
   `plate` varchar(50) DEFAULT NULL,
-  `fakeplate` varchar(50) DEFAULT NULL,
   `garage` varchar(50) DEFAULT NULL,
   `fuel` INT(11) DEFAULT NULL,
   `engine` FLOAT DEFAULT NULL,

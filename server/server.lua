@@ -9,6 +9,7 @@ function out_vehicles:add(o)
 end
 
 function out_vehicles:remove(o)
+     if not o.plate then return end
      if self.vehicles[string.upper(o.plate)] then
           self.vehicles[string.upper(o.plate)] = nil
      end
@@ -25,9 +26,13 @@ end
 
 QBCore.Functions.CreateCallback('keep-jobgarages:server:is_this_thePlayer_that_has_vehicle', function(source, cb, plate)
      local state, data, source_player = out_vehicles:search(plate)
-
+     if data == nil then
+          cb(true)
+          return
+     end
      if state and source_player == source then
           cb(true)
+          return
      end
      cb(false)
 end)
@@ -206,6 +211,10 @@ RegisterNetEvent("keep-jobgarages:server:retrive_vehicle", function(plate)
      local STATE = MySQL.Sync.fetchScalar('SELECT state FROM keep_garage WHERE plate = ?', { plate })
 
      if STATE == 0 then
+          if not Player.Functions.RemoveMoney("bank", Config.RetrivePrice, 'retrive_vehicle') then
+               TriggerClientEvent('QBCore:Notify', src, "You need to pay " .. Config.RetrivePrice .. "$ to retrive vehicle", 'error', 2500)
+               return
+          end
           MySQL.Async.execute('UPDATE keep_garage SET state = ?,fuel=?,engine=?,body = ? WHERE plate = ?', { 1, 15, 400, 100, plate }, function(result)
                if result == 1 then
                     TriggerClientEvent('QBCore:Notify', src, 'Vehicle retrived successfully', 'success')
@@ -220,7 +229,7 @@ RegisterNetEvent("keep-jobgarages:server:retrive_vehicle", function(plate)
                     return
                end
           end)
-          return TriggerClientEvent('QBCore:Notify', src, 'Failed to get vehicle', 'error', 2500)
+          return
      else
           TriggerClientEvent('QBCore:Notify', src, 'You can not request retrive on this vehicle ', 'error')
      end

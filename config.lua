@@ -4,7 +4,7 @@ Config.AllowledList = {
      'RGZ12054'
 }
 
-Config.RetrivePrice = 5000
+Config.RetrivePrice = 1000
 
 Config.VehicleWhiteList = {
      ['default'] = {

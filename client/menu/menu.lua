@@ -196,6 +196,7 @@ function Open:vehicle_actions_menu(data)
           QBCore.Functions.Notify('Vehicle is already out!', 'error', 2500)
           -- check if this player is toke this vehicle out if yes then show menu else go back to last menu
           QBCore.Functions.TriggerCallback('keep-jobgarages:server:is_this_thePlayer_that_has_vehicle', function(result)
+               print(result)
                if result then
                     take_out_menu(data, vehicle, nil, {
                          active = true,
