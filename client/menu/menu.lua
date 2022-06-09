@@ -340,39 +340,6 @@ AddEventHandler('keep-jobgarages:client:retrive_vehicle', function(plate)
      TriggerServerEvent('keep-jobgarages:server:retrive_vehicle', plate)
 end)
 
-local tabIndexOverflow = function(seed, table)
-     -- This subtracts values from the table from seed until an overflow
-     -- This can be used for probability :D
-     for i = 1, #table do
-          if seed - table[i] <= 0 then
-               return i, seed
-          end
-          seed = seed - table[i]
-     end
-end
-
-local getDate = function(unix)
-     -- Given unix date, return string date
-     assert(unix == nil or type(unix) == "number" or unix:find("/Date%((%d+)"), "Please input a valid number to \"getDate\"")
-     local unix = (type(unix) == "string" and unix:match("/Date%((%d+)") / 1000 or unix or os.time()) -- This is for a certain JSON compatability. It works the same even if you don't need it
-
-     local dayCount, year, days, month = function(yr) return (yr % 4 == 0 and (yr % 100 ~= 0 or yr % 400 == 0)) and 366 or 365 end, 1970, math.ceil(unix / 86400)
-
-     while days >= dayCount(year) do days = days - dayCount(year)
-          year = year + 1
-     end -- Calculate year and days into that year
-
-     month, days = tabIndexOverflow(days, { 31, (dayCount(year) == 366 and 29 or 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }) -- Subtract from days to find current month and leftover days
-
-     --  hours = hours > 12 and hours - 12 or hours == 0 and 12 or hours -- Change to proper am or pm time
-     --  local period = hours > 12 and "pm" or "am"
-
-     --  Formats for you!
-     --  string.format("%d/%d/%04d", month, days, year)
-     --  string.format("%02d:%02d:%02d %s", hours, minutes, seconds, period)
-     return { Month = month, day = days, year = year, hours = math.floor(unix / 3600 % 24), minutes = math.floor(unix / 60 % 60), seconds = math.floor(unix % 60) }
-end
-
 AddEventHandler('keep-jobgarages:client:get_vehicle_log', function(data)
      local openMenu = {
           {
@@ -522,17 +489,17 @@ RegisterCommand('+garage_menu', function()
      end
 end, false)
 
-local radialMenuItemId = exports['qb-radialmenu']:AddOption({
-     id = 'keep_put_back_to_garage',
-     title = 'Park',
-     icon = 'car',
-     type = 'client',
-     event = 'keep-jobgarages:client:keep_put_back_to_garage',
-     shouldClose = true
-})
+-- local radialMenuItemId = exports['qb-radialmenu']:AddOption({
+--      id = 'keep_put_back_to_garage',
+--      title = 'Park (Job)',
+--      icon = 'car',
+--      type = 'client',
+--      event = 'keep-jobgarages:client:keep_put_back_to_garage',
+--      shouldClose = true
+-- })
 
-AddEventHandler('onResourceStop', function(resourceName)
-     if resourceName == GetCurrentResourceName() then
-          exports['qb-radialmenu']:RemoveOption(radialMenuItemId)
-     end
-end)
+-- AddEventHandler('onResourceStop', function(resourceName)
+--      if resourceName == GetCurrentResourceName() then
+--           exports['qb-radialmenu']:RemoveOption(radialMenuItemId)
+--      end
+-- end)

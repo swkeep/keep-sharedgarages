@@ -229,7 +229,8 @@ RegisterNUICallback('close', function(data, cb)
 end)
 
 -- script Threads
-
+local rad = false
+local radialMenuItemId
 CreateThread(function() -- Get nearest spawn point
      while true do
           Wait(1000)
@@ -239,7 +240,23 @@ CreateThread(function() -- Get nearest spawn point
           if inGarageStation and currentgarage ~= nil then
                displayNUIText('Parking')
                nearspawnpoint = GetNearSpawnPoint()
+               if rad == false then
+                    rad = true
+                    radialMenuItemId = exports['qb-radialmenu']:AddOption({
+                         id = 'keep_put_back_to_garage',
+                         title = 'Park (Job)',
+                         icon = 'car',
+                         type = 'client',
+                         event = 'keep-jobgarages:client:keep_put_back_to_garage',
+                         shouldClose = true
+                    })
+               end
           else
+               rad = false
+               if radialMenuItemId then
+                    exports['qb-radialmenu']:RemoveOption(radialMenuItemId)
+                    radialMenuItemId = nil
+               end
                hideNUI()
           end
           ::skip::

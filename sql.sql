@@ -11,9 +11,13 @@ CREATE TABLE IF NOT EXISTS `keep_garage` (
   `engine` FLOAT DEFAULT NULL,
   `body` FLOAT DEFAULT NULL,
   `state` INT(11) DEFAULT NULL,
+  `metadata` LONGTEXT NOT NULL DEFAULT '0',
+  `permissions ` TEXT NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `plate` (`plate`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+metadata 
 
 CREATE TABLE IF NOT EXISTS `keep_garage_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

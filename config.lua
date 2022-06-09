@@ -28,7 +28,10 @@ Config.VehicleWhiteList = {
                name = 'Interceptor Corvette',
                spawncode = 'npolvette',
           },
-
+          ['1949729657'] = {
+               name = 'charger',
+               spawncode = 'npolchar',
+          },
      },
      ['heli'] = {
           ['-1804332227'] = {
