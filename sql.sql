@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `keep_garage` (
   `state` BOOLEAN NOT NULL DEFAULT TRUE,
   `is_customizable` BOOLEAN NOT NULL DEFAULT TRUE,
   `metadata` LONGTEXT NOT NULL,
-  `permissions ` TEXT NOT NULL,
+  `permissions` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   KEY `plate` (`plate`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
