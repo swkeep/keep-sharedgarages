@@ -6,6 +6,8 @@ Config.AllowledList = {
      'TOA30976'
 }
 
+Config.MagicTouch = false
+
 Config.VehicleWhiteList = {
      ['defaultPolice'] = {
           { label = 'Sheriff', spawncode = 'Sheriff2', icon = 'fa-solid fa-car-side' },

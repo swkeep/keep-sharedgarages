@@ -1,3 +1,13 @@
+--                _
+--               | |
+--   _____      _| | _____  ___ _ __
+--  / __\ \ /\ / / |/ / _ \/ _ \ '_ \
+--  \__ \\ V  V /|   <  __/  __/ |_) |
+--  |___/ \_/\_/ |_|\_\___|\___| .__/
+--                             | |
+--                             |_|
+-- https://github.com/swkeep
+
 local QBCore = exports['qb-core']:GetCoreObject()
 local keep_menu = {}
 local Cachedata = nil
@@ -248,7 +258,7 @@ function keep_menu:take_out_menu(data, vehicle, veh, per)
                icon = 'fa-solid fa-clipboard-question',
                args = { { plate = vehicle.plate, data = data, vehicle = vehicle, veh = veh } },
                action = function(args)
-                    keep_menu:vehicle_parking_log(args[1])
+                    keep_menu:vehicle_parking_log(args[1], per)
                end
           },
      }
@@ -264,8 +274,6 @@ function keep_menu:take_out_menu(data, vehicle, veh, per)
 
           Menu[#Menu + 1] = {
                header = "Modify Vehicle's Name",
-               type = 'server',
-               event = 'keep-jobgarages:server:dupe',
                icon = 'fa-solid fa-pen-to-square',
                action = function()
                     local Input = {
@@ -292,8 +300,6 @@ function keep_menu:take_out_menu(data, vehicle, veh, per)
 
           Menu[#Menu + 1] = {
                header = "Modify Vehicle's Plate",
-               type = 'server',
-               event = 'keep-jobgarages:server:dupe',
                icon = 'fa-solid fa-pen-to-square',
                action = function()
                     local Input = {
@@ -315,6 +321,65 @@ function keep_menu:take_out_menu(data, vehicle, veh, per)
                          if not inputData.vehicle_plate then return end
                          TriggerServerEvent('keep-jobgarages:server:update_vehicle_plate', inputData.vehicle_plate,
                               vehicle.plate)
+                    end
+               end
+          }
+
+          Menu[#Menu + 1] = {
+               header = "Modify Vehicle's Customizability",
+               icon = 'fa-solid fa-pen-to-square',
+               action = function()
+                    local Input = {
+                         inputs = {
+                              {
+                                   isRequired = true,
+                                   name = 'customizability',
+                                   title = "Modify Vehicle's Customizability",
+                                   force_value = vehicle.plate,
+                                   type = "radio",
+                                   options = {
+                                        { value = true, text = 'Yes' },
+                                        { value = false, text = 'No' },
+                                   },
+                              },
+                         }
+                    }
+
+                    local inputData, reason = exports['keep-input']:ShowInput(Input)
+                    if reason == 'submit' then
+                         if not inputData.customizability then return end
+                         TriggerServerEvent('keep-jobgarages:server:set_is_customizable', inputData.customizability,
+                              vehicle.plate)
+                    end
+               end
+          }
+
+          Menu[#Menu + 1] = {
+               header = "Delete Vehicle",
+               icon = 'fa-solid fa-pen-to-square',
+               action = function()
+                    local Input = {
+                         inputs = {
+                              {
+                                   isRequired = true,
+                                   name = 'delete',
+                                   title = "Delete Vehicle",
+                                   force_value = vehicle.plate,
+                                   type = "radio",
+                                   options = {
+                                        { value = true, text = 'Yes' },
+                                        { value = false, text = 'No' },
+                                   },
+                              },
+                         }
+                    }
+
+                    local inputData, reason = exports['keep-input']:ShowInput(Input)
+                    if reason == 'submit' then
+                         if not inputData.delete then return end
+                         if inputData.delete == 'true' then
+                              TriggerServerEvent('keep-jobgarages:server:delete', vehicle.plate)
+                         end
                     end
                end
           }
@@ -402,16 +467,15 @@ function keep_menu:vehicle_actions_menu(data)
      end, vehicle.plate)
 end
 
-function keep_menu:vehicle_parking_log(data)
+function keep_menu:vehicle_parking_log(data, per)
      local Menu = {
-          {
-               header = "Go Back",
-               icon = 'fa-solid fa-angle-left',
-               args = { { data = data.data, vehicle = data.vehicle, veh = data.veh } },
-               action = function(args)
-                    keep_menu:take_out_menu(args[1].data, args[1].vehicle, args[1].veh)
-               end
-          },
+          -- {
+          --      header = "Go Back",
+          --      icon = 'fa-solid fa-angle-left',
+          --      action = function()
+          --           keep_menu:take_out_menu(data.data, data.vehicle, data.veh, per)
+          --      end
+          -- },
      }
 
      TriggerCallback('keep-jobgarages:server:get_vehicle_log', function(LOGS)

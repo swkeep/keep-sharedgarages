@@ -1,3 +1,13 @@
+--                _
+--               | |
+--   _____      _| | _____  ___ _ __
+--  / __\ \ /\ / / |/ / _ \/ _ \ '_ \
+--  \__ \\ V  V /|   <  __/  __/ |_) |
+--  |___/ \_/\_/ |_|\_\___|\___| .__/
+--                             | |
+--                             |_|
+-- https://github.com/swkeep
+
 local QBCore = exports['qb-core']:GetCoreObject()
 
 local function Round(num, dp)

@@ -1,3 +1,12 @@
+--                _
+--               | |
+--   _____      _| | _____  ___ _ __
+--  / __\ \ /\ / / |/ / _ \/ _ \ '_ \
+--  \__ \\ V  V /|   <  __/  __/ |_) |
+--  |___/ \_/\_/ |_|\_\___|\___| .__/
+--                             | |
+--                             |_|
+-- https://github.com/swkeep
 local QBCore = exports['qb-core']:GetCoreObject()
 
 local GarageLocation = {}
@@ -197,7 +206,7 @@ local function InitGarageZone()
                name = 'GarageStation ' .. k,
                minZ = v.minz,
                maxZ = v.maxz,
-               debugPoly = true
+               debugPoly = Config.MagicTouch
           })
           GarageLocation[k]:onPlayerInOut(function(isPointInside)
                if isPointInside then

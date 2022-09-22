@@ -1,3 +1,12 @@
+--                _
+--               | |
+--   _____      _| | _____  ___ _ __
+--  / __\ \ /\ / / |/ / _ \/ _ \ '_ \
+--  \__ \\ V  V /|   <  __/  __/ |_) |
+--  |___/ \_/\_/ |_|\_\___|\___| .__/
+--                             | |
+--                             |_|
+-- https://github.com/swkeep
 local QBCore = exports['qb-core']:GetCoreObject()
 
 local out_vehicles = {
@@ -176,7 +185,6 @@ RegisterNetEvent('keep-jobgarages:server:dupe', function(plate)
      end
 end)
 
-
 RegisterNetEvent('keep-jobgarages:server:update_vehicle_name', function(new_name, plate)
      local src = source
      local player = QBCore.Functions.GetPlayer(src)
@@ -199,6 +207,39 @@ RegisterNetEvent('keep-jobgarages:server:update_vehicle_plate', function(new_pla
      MySQL.Async.execute('UPDATE keep_garage SET plate = ? WHERE plate = ?', { new_plate or plate, plate }, function()
           Notification(src, 'success', 'success')
      end)
+end)
+
+RegisterNetEvent('keep-jobgarages:server:set_is_customizable', function(state, plate)
+     local src = source
+     local player = QBCore.Functions.GetPlayer(src)
+     if not cidWhiteListed(player) then
+          Notification(src, 'You are not whitelisted', 'error')
+          return
+     end
+     -- state might be no a bool value
+     if state == 'false' then
+          MySQL.Async.execute('UPDATE keep_garage SET is_customizable = ? WHERE plate = ?', { 0, plate }, function()
+               Notification(src, 'success', 'success')
+          end)
+     else
+          MySQL.Async.execute('UPDATE keep_garage SET is_customizable = ? WHERE plate = ?', { 1, plate }, function()
+               Notification(src, 'success', 'success')
+          end)
+     end
+end)
+
+RegisterNetEvent('keep-jobgarages:server:delete', function(plate)
+     local src = source
+     local player = QBCore.Functions.GetPlayer(src)
+     if not cidWhiteListed(player) then
+          Notification(src, 'You are not whitelisted', 'error')
+          return
+     end
+     -- state might be no a bool value
+     MySQL.Async.execute('DELETE FROM keep_garage WHERE plate = ?', { plate }, function()
+          Notification(src, 'success', 'success')
+     end)
+
 end)
 
 RegisterNetEvent("keep-jobgarages:server:update_state", function(plate, properties)
@@ -258,16 +299,24 @@ RegisterNetEvent("keep-jobgarages:server:update_state", function(plate, properti
      end
 end)
 
-QBCore.Commands.Add('saveInsideGarage', 'Save vehicle in shared garage', {}, true,
-     function(source, args)
-          local Player = QBCore.Functions.GetPlayer(source)
-          if not cidWhiteListed(Player) then
-               Notification(src, 'You are not whitelisted', 'error')
-               return
-          end
-          TriggerClientEvent('keep-jobgarages:client:newVehicleSetup', source, args[1],
-               QBCore.Shared.Jobs[args[1]].grades)
-     end, 'user')
+QBCore.Commands.Add('saveInsideGarage', 'Save vehicle in shared garage', {
+     {
+          name = "job name",
+          help = ""
+     },
+}, true, function(source, args)
+     local src = source
+     if not args[1] or not QBCore.Shared.Jobs[args[1]] then
+          Notification(src, 'Job name is wrong!', 'error')
+          return
+     end
+     local Player = QBCore.Functions.GetPlayer(src)
+     if not cidWhiteListed(Player) then
+          Notification(src, 'You are not whitelisted', 'error')
+          return
+     end
+     TriggerClientEvent('keep-jobgarages:client:newVehicleSetup', src, args[1], QBCore.Shared.Jobs[args[1]].grades)
+end, 'user')
 
 CreateCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(source, cb, PlayerJob)
      local players = QBCore.Functions.GetPlayers()
