@@ -8,6 +8,18 @@
 - [qb-menu] support will be in future updates
 - Support for [qb-input] will not be added most likely
 
+## Preview
+
+- [Click Here](https://youtu.be/51rRVQtvedI)
+
+## Features
+
+- Better save condition of most windshields, doors and wheel damages
+- Shared vehicle garage
+- Allow or disallow vehicle customization
+- Custom plates for saved vehicles
+- Category of vehicles
+
 ## Installation
 
 - Drag and drop resource in your server!
@@ -16,5 +28,3 @@
 - done!
 - now you can use /saveinsidegarage jobname command while you're inside a vehicle
 - and save it as shared vehicle inside the garage
-
-## Features
