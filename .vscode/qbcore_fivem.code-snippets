@@ -23,7 +23,7 @@
     "scope": "lua",
     "prefix": "triggerCallbackQbcore",
     "body": [
-      "QBCore.Functions.TriggerCallback('${1:eventName}', function(result)",
+      "TriggerCallback('${1:eventName}', function(result)",
       "${3}",
       "end , ${2:dataThatGetSentToServer})"
     ]

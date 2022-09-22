@@ -1,57 +1,37 @@
 Config = Config or {}
 
+Config.fuel_script = 'keep-fuel'
+
 Config.AllowledList = {
-     'RGZ12054'
+     'TOA30976'
 }
 
-Config.RetrivePrice = 1000
-
 Config.VehicleWhiteList = {
-     ['default'] = {
-          ['-1716760427'] = {
-               name = 'CGT',
-               spawncode = 'cgt',
-          },
-          ['-901056903'] = {
-               name = 'Nopixel Vic',
-               spawncode = 'npolvic',
-          },
-          ['1947925897'] = {
-               name = 'Rhino',
-               spawncode = 'bcat',
-          },
-          ['719025956'] = {
-               name = 'Ford Explorer',
-               spawncode = 'npolexp',
-          },
-          ['-1109563416'] = {
-               name = 'Interceptor Corvette',
-               spawncode = 'npolvette',
-          },
-          ['1949729657'] = {
-               name = 'charger',
-               spawncode = 'npolchar',
-          },
+     ['defaultPolice'] = {
+          { label = 'Sheriff', spawncode = 'Sheriff2', icon = 'fa-solid fa-car-side' },
+          { label = 'Sheriff', spawncode = 'Sheriff', icon = 'fa-solid fa-car-side' },
+          { label = 'Riot', spawncode = 'Riot', icon = 'fa-solid fa-truck' },
+          { label = 'Policeb', spawncode = 'Policeb', icon = 'fa-solid fa-car-side' },
+          { label = 'PBus', spawncode = 'PBus', icon = 'fa-solid fa-car-side' },
+          { label = 'Police', spawncode = 'Police', icon = 'fa-solid fa-car-side' },
+          { label = 'Police2', spawncode = 'Police2', icon = 'fa-solid fa-car-side' },
+          { label = 'Police3', spawncode = 'Police3', icon = 'fa-solid fa-car-side' },
+          { label = 'Police4', spawncode = 'Police4', icon = 'fa-solid fa-car-side' },
      },
-     ['heli'] = {
-          ['-1804332227'] = {
-               name = 'AS350',
-               spawncode = 'polas350',
-          },
+     ['heliPolice'] = {
+          { label = 'Police Maverick', spawncode = 'Polmav', icon = 'fa-solid fa-helicopter' }
      },
-     ['ems_heli'] = {
-          ['642455611'] = {
-               name = 'EMS AW139',
-               spawncode = 'emsaw139',
-          },
-     },
+     ['gas_station'] = {
+          { label = 'Adder', spawncode = 'adder', icon = 'fa-solid fa-taxi' },
+          { label = 'Glendale', spawncode = 'glendale', icon = 'fa-solid fa-car-side' },
+     }
 }
 
 Config.JobGarages = {
      --Job Garage:
      ['mrpd'] = {
-          label = 'Police Garage',
-          type = 'job', --public, job, gang
+          label = 'Police Garage (mrpd)',
+          type = 'job',
           job = { 'police' },
           onDuty = true,
           spawnPoint = {
@@ -61,22 +41,20 @@ Config.JobGarages = {
                vector4(445.94, -994.25, 25.12, 270.9),
                vector4(445.73, -988.81, 25.12, 269.94),
                vector4(446.24, -986.16, 25.12, 269.11),
-
                -- flip
                vector4(437.0, -986.11, 25.12, 88.82),
                vector4(437.06, -988.91, 25.12, 89.17),
                vector4(437.16, -991.66, 25.12, 88.86),
                vector4(437.31, -994.24, 25.12, 89.62),
-               vector4(437.1, -997.01, 25.12, 89.27)
-          },
-          blippoint = vector3(441.64, -984.96, 25.7),
-          showBlip = false,
-          blipsprite = 357,
-          blipscale = 0.65,
-          blipcolour = 3,
-          fullfix = {
-               active = true,
-               price = 250,
+               vector4(437.1, -997.01, 25.12, 89.27),
+               vector4(425.99, -976.17, 25.08, 90.6),
+               vector4(425.76, -979.0, 25.08, 90.9),
+               vector4(425.92, -981.54, 25.08, 90.12),
+               vector4(425.89, -984.25, 25.08, 89.43),
+               vector4(425.77, -988.98, 25.08, 90.47),
+               vector4(425.68, -991.71, 25.08, 89.45),
+               vector4(425.66, -994.37, 25.09, 89.49),
+               vector4(425.77, -997.05, 25.09, 88.9)
           },
           zones = {
                vector2(423, -1000),
@@ -88,11 +66,11 @@ Config.JobGarages = {
           },
           minz = 24.66,
           maxz = 28.66,
-          WhiteList = Config.VehicleWhiteList.default
+          WhiteList = Config.VehicleWhiteList['defaultPolice']
      },
      ['mrpd_out'] = {
-          label = 'Police Garage',
-          type = 'job', --public, job, gang
+          label = 'Police Garage (mrpd)',
+          type = 'job',
           job = { 'police' },
           spawnPoint = {
                vector4(449.54, -1025.0, 27.96, 186.01),
@@ -100,15 +78,6 @@ Config.JobGarages = {
                vector4(442.55, -1026.0, 28.09, 184.49),
                vector4(439.1, -1026.0, 28.16, 185.11),
                vector4(435.67, -1026.0, 28.22, 184.95)
-          },
-          blippoint = vector3(441.64, -984.96, 25.7),
-          showBlip = false,
-          blipsprite = 357,
-          blipscale = 0.65,
-          blipcolour = 3,
-          fullfix = {
-               active = true,
-               price = 250,
           },
           zones = {
                vector2(455, -1027.8),
@@ -118,27 +87,17 @@ Config.JobGarages = {
           },
           minz = 26.66,
           maxz = 32.66,
-          WhiteList = Config.VehicleWhiteList.default
+          WhiteList = Config.VehicleWhiteList['defaultPolice']
      },
      ['mrpd_back'] = {
-          label = 'Police Garage',
-          type = 'job', --public, job, gang
+          label = 'Police Garage (mrpd)',
+          type = 'job',
           job = { 'police' },
           spawnPoint = {
                vector4(475.95, -1026.46, 27.49, 329.57),
                vector4(479.38, -1026.41, 27.42, 329.81),
                vector4(483.16, -1025.68, 27.39, 328.76)
           },
-          blippoint = vector3(441.64, -984.96, 25.7),
-          showBlip = false,
-          blipsprite = 357,
-          blipscale = 0.65,
-          blipcolour = 3,
-          fullfix = {
-               active = true,
-               price = 250,
-          },
-
           zones = {
                vector2(472, -1030.2),
                vector2(487, -1028.4),
@@ -147,25 +106,15 @@ Config.JobGarages = {
           },
           minz = 27,
           maxz = 30.95,
-          WhiteList = Config.VehicleWhiteList.default
+          WhiteList = Config.VehicleWhiteList['defaultPolice']
      },
      ['mrpd_heli_pad'] = {
-          label = 'Police Heli Pad',
-          type = 'job', --public, job, gang
+          label = 'Police Heli Pad (mrpd)',
+          type = 'job',
           job = { 'police' },
           spawnPoint = {
                vector4(449.22, -981.24, 43.69, 91.21)
           },
-          blippoint = vector3(441.64, -984.96, 25.7),
-          showBlip = false,
-          blipsprite = 357,
-          blipscale = 0.65,
-          blipcolour = 3,
-          fullfix = {
-               active = true,
-               price = 250,
-          },
-
           zones = {
                vector2(459.4, -975.1),
                vector2(441.9, -974.7),
@@ -174,49 +123,33 @@ Config.JobGarages = {
           },
           minz = 42.5,
           maxz = 50.95,
-          WhiteList = Config.VehicleWhiteList.heli
+          WhiteList = Config.VehicleWhiteList['heliPolice']
      },
-     ['hospital_heli_pad'] = {
-          label = 'EMS Heli Pad',
-          type = 'job', --public, job, gang
-          job = { 'ambulance' },
+     ['gas_station'] = {
+          label = 'Gas Station',
+          type = 'job',
+          job = { 'oilwell' },
           spawnPoint = {
-               vector4(351.14, -587.98, 74.05, 243.76)
-          },
-          blippoint = vector3(351.86, -587.87, 74.16),
-          showBlip = false,
-          blipsprite = 357,
-          blipscale = 0.65,
-          blipcolour = 3,
-          fullfix = {
-               active = true,
-               price = 250,
+               vector4(298.68, -1241.99, 28.88, 359.68),
+               vector4(294.98, -1241.8, 28.87, 0.73),
+               vector4(291.94, -1241.92, 28.84, 0.5),
+               vector4(288.66, -1241.81, 28.83, 358.8),
+               vector4(285.18, -1241.85, 28.81, 0.51),
+               vector4(281.55, -1241.91, 28.8, 2.78),
+               vector4(278.7, -1241.89, 28.79, 358.64)
           },
           zones = {
-               vector2(346.29, -593.41),
-               vector2(349.69, -595.45),
-               vector2(351.78, -595.68),
-               vector2(353.68, -595.53),
-               vector2(356.94, -593.59),
-               vector2(358.53, -591.75),
-               vector2(359.20, -590.06),
-               vector2(359.46, -588.21),
-               vector2(359.15, -586.00),
-               vector2(357.25, -582.55),
-               vector2(355.73, -581.39),
-               vector2(353.39, -580.53),
-               vector2(351.80, -580.48),
-               vector2(349.83, -580.65),
-               vector2(346.58, -582.40),
-               vector2(345.25, -584.17),
-               vector2(344.42, -585.96),
-               vector2(344.12, -587.94),
-               vector2(344.31, -589.72),
-               vector2(345.09, -591.64)
+               vector2(273.80, -1247.66),
+               vector2(273.86, -1236.66),
+               vector2(301.53, -1236.18),
+               vector2(301.69, -1249.62)
           },
-          minz = 72.5,
-          maxz = 79.00,
-          WhiteList = Config.VehicleWhiteList.ems_heli
+          minz = 28.0,
+          maxz = 30.0,
+          WhiteList = Config.VehicleWhiteList['gas_station']
      },
 }
--- edit menu too
+
+function Notification(source, msg, _type)
+     TriggerClientEvent('QBCore:Notify', source, msg, _type)
+end

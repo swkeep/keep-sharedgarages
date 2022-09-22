@@ -10,6 +10,7 @@ shared_script {
 
 client_scripts {
      '@PolyZone/client.lua',
+     'client/lib.lua',
      'client/client.lua',
      'client/menu/menu.lua',
      'client/menu/functions.lua',
@@ -17,17 +18,10 @@ client_scripts {
 
 server_script {
      '@oxmysql/lib/MySQL.lua',
+     'server/lib.lua',
      'server/server.lua',
-     'server/server_lib/lib.lua' }
-
--- dependency 'oxmysql'
-ui_page 'html/door.html'
-
-files {
-     'html/*.html',
-     'html/*.js',
-     'html/*.css',
-     'html/sounds/*.ogg',
 }
+
+dependency 'oxmysql'
 
 lua54 'yes'

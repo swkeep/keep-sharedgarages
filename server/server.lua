@@ -16,27 +16,12 @@ function out_vehicles:remove(o)
 end
 
 function out_vehicles:search(plate)
-     for key, value in pairs(self.vehicles) do
-          if key == plate then
-               return true, value, key
-          end
+     if self.vehicles[string.upper(plate)] then
+          return true, plate, elf.vehicles[string.upper(plate)]
+     else
+          return false, nil, nil
      end
-     return false, nil, nil
 end
-
-QBCore.Functions.CreateCallback('keep-jobgarages:server:is_this_thePlayer_that_has_vehicle', function(source, cb, plate)
-     local state, data, source_player = out_vehicles:search(plate)
-     if data == nil then
-          cb(true)
-          return
-     end
-     if state and source_player == source then
-          cb(true)
-          return
-     end
-     cb(false)
-end)
-
 
 RegisterNetEvent('keep-jobgarages:server:update_out_vehicles', function(o)
      o.source = source
@@ -47,48 +32,31 @@ RegisterNetEvent('keep-jobgarages:server:update_out_vehicles', function(o)
      end
 end)
 
+local function cidWhiteListed(Player)
+     for key, value in pairs(Config.AllowledList) do
+          if value == Player.PlayerData.citizenid then
+               return true
+          end
+     end
+     return false
+end
 
-QBCore.Functions.CreateCallback('keep-jobgarages:server:doesVehicleExist', function(source, cb, plate)
+CreateCallback('keep-jobgarages:server:doesVehicleExist', function(source, cb, plate)
+     local Player = QBCore.Functions.GetPlayer(source)
+     if not Player then return end
      local state, data = out_vehicles:search(string.upper(plate))
-     cb(state)
+     cb(state, cidWhiteListed(Player))
 end)
 
-local function Round(num, dp)
-     local mult = 10 ^ (dp or 0)
-     return math.floor(num * mult + 0.5) / mult
-end
-
--- restricted functions
-local function GeneralInsert(options)
-     local sqlQuery = 'INSERT INTO keep_garage (citizenid,name,model,hash,mods,plate,fakeplate,garage,fuel,engine,body,state,driving_distance,permissions) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
-     local QueryData = {
-          options.citizenid,
-          options.name,
-          options.model,
-          options.hash,
-          json.encode(options.mods),
-          options.plate,
-          options.fakeplate,
-          options.garage,
-          options.fuel,
-          options.engine,
-          options.body,
-          options.state,
-          options.driving_distance,
-          json.encode(options.permissions)
-     }
-     return MySQL.Async.insert(sqlQuery, QueryData)
-end
-
-local function vehicle_data_logger(options)
+local function vehicle_data_logger(options, cb)
      local sqlQuery = 'INSERT INTO keep_garage_logs (plate,action,citizenid,data) VALUES (?,?,?,?)'
      local tmp = {
           charinfo = options.charinfo,
           garage = options.garage,
           vehicle_info = {
-               fuel = Round(options.fuel, 2),
-               engine = Round(options.engine, 2),
-               body = Round(options.body, 2),
+               fuel = math.floor(options.fuel),
+               engine = math.floor(options.engine),
+               body = math.floor(options.body),
           }
      }
      local QueryData = {
@@ -97,104 +65,189 @@ local function vehicle_data_logger(options)
           options.citizenid,
           json.encode(tmp)
      }
-     return MySQL.Async.insert(sqlQuery, QueryData)
+     MySQL.Async.insert(sqlQuery, QueryData, function()
+          if cb then
+               cb()
+          end
+     end)
 end
 
-QBCore.Functions.CreateCallback('keep-jobgarages:server:get_vehicle_log', function(source, cb, data)
-     local player = QBCore.Functions.GetPlayer(source)
-     local LOGS = MySQL.Sync.fetchAll('SELECT plate,action,citizenid,data,DATE_FORMAT(created,"%Y:%m:%d %h:%m:%s") AS Action_timestamp  FROM keep_garage_logs WHERE plate = ? order by Action_timestamp desc limit 15', { data.plate })
+CreateCallback('keep-jobgarages:server:get_vehicle_log', function(source, cb, data)
+     local LOGS = MySQL.Sync.fetchAll('SELECT plate,action,citizenid,data,DATE_FORMAT(created,"%Y:%m:%d %h:%m:%s") AS Action_timestamp  FROM keep_garage_logs WHERE plate = ? order by Action_timestamp desc limit 15'
+          , { data.plate })
 
      cb(LOGS)
 end)
 
-QBCore.Functions.CreateCallback('keep-jobgarages:server:save_vehicle', function(source, cb, data)
+CreateCallback('keep-jobgarages:server:save_vehicle', function(source, cb, data)
      -- check for existing one too
-     local player = QBCore.Functions.GetPlayer(source)
-     local ready_data = {}
-
-     ready_data.citizenid = player.PlayerData.citizenid
-     ready_data.name = data.name or "placeholder"
-     ready_data.model = data.info.spawncode
-     ready_data.hash = data.hash
-     ready_data.mods = data.vehicle
-     ready_data.plate = data.plate or data.vehicle.plate
-     ready_data.fakeplate = nil
-     ready_data.garage = data.garage
-     ready_data.fuel = data.vehicle.fuelLevel
-     ready_data.engine = data.vehicle.engineHealth
-     ready_data.body = data.vehicle.bodyHealth
-     ready_data.state = true
-     ready_data.driving_distance = 0.0
-     ready_data.state = true -- true means vehicle is inside garage
-
-     ready_data.permissions = {
-          grades = data.grades,
-          cids = data.cids,
-          job = data.job
-     }
-
-     GeneralInsert(ready_data)
-     cb(true)
-end)
-
-QBCore.Functions.CreateCallback('keep-jobgarages:server:fetch_categories', function(source, cb, data)
-     local player = QBCore.Functions.GetPlayer(source)
-     local DISTINCT = MySQL.Sync.fetchAll('SELECT DISTINCT model FROM keep_garage WHERE garage = ?', { data.garage })
-     local CURRENT_GARAGE_VEHICLS = MySQL.Sync.fetchAll('SELECT * FROM keep_garage WHERE garage = ?', { data.garage })
-     local tmp = {}
-     for key, value in pairs(CURRENT_GARAGE_VEHICLS) do
-          if tmp[value.model] == nil then
-               tmp[value.model] = {}
-          end
-          value.mods = json.decode(value.mods)
-          value.metadata = json.decode(value.metadata)
-          value.permissions = json.decode(value.permissions)
-          value.current_player_id = player.PlayerData.citizenid
-          table.insert(tmp[value.model], value)
+     if not data.plate then
+          print('No plate has been sent!')
+          return
      end
-     tmp.DISTINCT = DISTINCT
-     cb(tmp)
+     local player = QBCore.Functions.GetPlayer(source)
+     data.VehicleProperties.plate = data.plate
+
+     local sqlQuery = 'INSERT INTO keep_garage (citizenid,name,model,hash,mods,plate,garage,fuel,engine,body,state,permissions) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+     local QueryData = {
+          player.PlayerData.citizenid,
+          data.name or "No Name",
+          data.info.spawncode,
+          data.hash,
+          json.encode(data.VehicleProperties),
+          string.upper(data.plate),
+          data.garage,
+          Round(data.VehicleProperties.fuelLevel),
+          Round(data.VehicleProperties.engineHealth),
+          Round(data.VehicleProperties.bodyHealth),
+          true, -- state true means nobody took the vehicle out!
+          json.encode({
+               grades = data.grades,
+               cids = data.cids,
+               job = data.job
+          })
+     }
+     MySQL.Async.insert(sqlQuery, QueryData, function()
+          cb(true)
+     end)
 end)
 
-QBCore.Functions.CreateCallback('keep-jobgarages:server:can_we_store_this_vehicle', function(source, cb, data)
-     local state = MySQL.Sync.fetchScalar('SELECT hash FROM keep_garage WHERE plate = ?', { data.plate })
-     cb(state)
+CreateCallback('keep-jobgarages:server:fetch_categories', function(source, cb, data)
+     local player = QBCore.Functions.GetPlayer(source)
+     local tmp = {}
+     MySQL.Async.fetchAll('SELECT DISTINCT model FROM keep_garage WHERE garage = ?', { data.garage },
+          function(DISTINCT)
+               tmp.DISTINCT = DISTINCT
+               MySQL.Async.fetchAll('SELECT * FROM keep_garage WHERE garage = ?', { data.garage },
+                    function(CURRENT_GARAGE_VEHICLS)
+                         for key, value in pairs(CURRENT_GARAGE_VEHICLS) do
+                              if tmp[value.model] == nil then
+                                   tmp[value.model] = {}
+                              end
+                              value.mods = json.decode(value.mods)
+                              value.metadata = json.decode(value.metadata)
+                              value.permissions = json.decode(value.permissions)
+                              value.current_player_id = player.PlayerData.citizenid
+                              tmp[value.model][#tmp[value.model] + 1] = value
+                         end
+                         cb(tmp)
+                    end)
+          end)
+end)
+
+CreateCallback('keep-jobgarages:server:can_we_store_this_vehicle', function(source, cb, data)
+     MySQL.Async.fetchScalar('SELECT hash FROM keep_garage WHERE plate = ?', { data.VehicleProperties.plate },
+          function(state)
+               cb(state)
+          end)
+end)
+
+RegisterNetEvent('keep-jobgarages:server:dupe', function(plate)
+     local src = source
+     local player = QBCore.Functions.GetPlayer(src)
+     if not cidWhiteListed(player) then
+          Notification(src, 'You are not whitelisted', 'error')
+          return
+     end
+     local data = MySQL.Sync.fetchAll('SELECT * FROM `keep_garage` WHERE plate = ?', { plate })
+     local sqlQuery = 'INSERT INTO keep_garage (citizenid,name,model,hash,mods,plate,garage,fuel,engine,body,state,permissions) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+     data = data[1]
+     if data then
+          local mods = json.decode(data.mods)
+          local newplate = string.upper(RandomID(8))
+          mods.plate = newplate
+          local QueryData = {
+               player.PlayerData.citizenid,
+               data.name or "No Name",
+               data.model,
+               data.hash,
+               json.encode(mods),
+               newplate,
+               data.garage,
+               data.fuel,
+               data.engine,
+               data.body,
+               true,
+               data.permissions
+          }
+          MySQL.Async.insert(sqlQuery, QueryData, function()
+               Notification(src, 'Vehicle duplicated successfully!', 'success')
+          end)
+     end
+end)
+
+
+RegisterNetEvent('keep-jobgarages:server:update_vehicle_name', function(new_name, plate)
+     local src = source
+     local player = QBCore.Functions.GetPlayer(src)
+     if not cidWhiteListed(player) then
+          Notification(src, 'You are not whitelisted', 'error')
+          return
+     end
+     MySQL.Async.execute('UPDATE keep_garage SET name = ? WHERE plate = ?', { new_name or '', plate }, function()
+          Notification(src, 'success', 'success')
+     end)
+end)
+
+RegisterNetEvent('keep-jobgarages:server:update_vehicle_plate', function(new_plate, plate)
+     local src = source
+     local player = QBCore.Functions.GetPlayer(src)
+     if not cidWhiteListed(player) then
+          Notification(src, 'You are not whitelisted', 'error')
+          return
+     end
+     MySQL.Async.execute('UPDATE keep_garage SET plate = ? WHERE plate = ?', { new_plate or plate, plate }, function()
+          Notification(src, 'success', 'success')
+     end)
 end)
 
 RegisterNetEvent("keep-jobgarages:server:update_state", function(plate, properties)
      local src = source
      local Player = QBCore.Functions.GetPlayer(src)
+     if not plate then
+          print('no plate! (keep-jobgarages:server:update_state)')
+          return
+     end
      local STATE = MySQL.Sync.fetchScalar('SELECT state FROM keep_garage WHERE plate = ?', { plate })
      if STATE == 0 then
           -- save damages too
           if properties ~= nil then
-               MySQL.Async.execute('UPDATE keep_garage SET state = ?, garage = ? ,fuel = ? ,engine = ?, body = ?, metadata = ? WHERE plate = ?', {
+               local s = 'UPDATE keep_garage SET state = ?, garage = ? ,fuel = ? ,engine = ?, body = ?, metadata = ? WHERE plate = ?'
+               MySQL.Async.execute(s, {
                     1,
                     properties.currentgarage,
-                    math.floor(properties.fuelLevel),
-                    math.floor(properties.engineHealth),
-                    math.floor(properties.bodyHealth),
+                    math.floor(properties.VehicleProperties.fuelLevel),
+                    math.floor(properties.VehicleProperties.engineHealth),
+                    math.floor(properties.VehicleProperties.bodyHealth),
                     json.encode(properties.metadata),
-                    properties.plate
+                    plate
                }, function(result)
                     if result == 1 then
-                         TriggerClientEvent('QBCore:Notify', src, 'Vehicle stored successfully', 'success')
+                         Notification(src, 'Vehicle stored successfully', 'success')
                          vehicle_data_logger({
                               citizenid = Player.PlayerData.citizenid,
                               plate = plate,
                               charinfo = Player.PlayerData.charinfo,
                               action = 'store',
-                              fuel = properties.fuelLevel, engine = properties.engineHealth, body = properties.bodyHealth
+                              fuel = properties.VehicleProperties.fuelLevel,
+                              engine = properties.VehicleProperties.engineHealth,
+                              body = properties.VehicleProperties.bodyHealth
+                         })
+                         local sql = 'UPDATE keep_garage SET mods = ? WHERE plate = ? AND is_customizable = 1'
+                         MySQL.Async.execute(sql, {
+                              json.encode(properties.VehicleProperties),
+                              plate
                          })
                          return
                     end
                end)
                return
           end
-          TriggerClientEvent('QBCore:Notify', src, 'Failed to get vehicle', 'error', 2500)
+
+          Notification(src, 'Failed to get vehicle', 'error')
      else
           MySQL.Async.execute('UPDATE keep_garage SET state = ? WHERE plate = ?', { 0, plate })
-          TriggerClientEvent('QBCore:Notify', src, 'Vehicle got out successfully', 'success')
+          -- Notification(src, 'Vehicle got out successfully', 'success')
           vehicle_data_logger({
                citizenid = Player.PlayerData.citizenid,
                plate = plate,
@@ -205,56 +258,37 @@ RegisterNetEvent("keep-jobgarages:server:update_state", function(plate, properti
      end
 end)
 
-RegisterNetEvent("keep-jobgarages:server:retrive_vehicle", function(plate)
-     local src = source
-     local Player = QBCore.Functions.GetPlayer(src)
-     local STATE = MySQL.Sync.fetchScalar('SELECT state FROM keep_garage WHERE plate = ?', { plate })
-
-     if STATE == 0 then
-          if not Player.Functions.RemoveMoney("bank", Config.RetrivePrice, 'retrive_vehicle') then
-               TriggerClientEvent('QBCore:Notify', src, "You need to pay " .. Config.RetrivePrice .. "$ to retrive vehicle", 'error', 2500)
+QBCore.Commands.Add('saveInsideGarage', 'Save vehicle in shared garage', {}, true,
+     function(source, args)
+          local Player = QBCore.Functions.GetPlayer(source)
+          if not cidWhiteListed(Player) then
+               Notification(src, 'You are not whitelisted', 'error')
                return
           end
-          MySQL.Async.execute('UPDATE keep_garage SET state = ?,fuel=?,engine=?,body = ? WHERE plate = ?', { 1, 15, 400, 100, plate }, function(result)
-               if result == 1 then
-                    TriggerClientEvent('QBCore:Notify', src, 'Vehicle retrived successfully', 'success')
-                    vehicle_data_logger({
-                         citizenid = Player.PlayerData.citizenid,
-                         plate = plate,
-                         charinfo = Player.PlayerData.charinfo,
-                         action = 'retrive',
-                         fuel = 15, engine = 400, body = 100
-                    })
-                    out_vehicles:remove({ plate = plate })
-                    return
-               end
-          end)
-          return
-     else
-          TriggerClientEvent('QBCore:Notify', src, 'You can not request retrive on this vehicle ', 'error')
+          TriggerClientEvent('keep-jobgarages:client:newVehicleSetup', source, args[1],
+               QBCore.Shared.Jobs[args[1]].grades)
+     end, 'user')
+
+CreateCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(source, cb, PlayerJob)
+     local players = QBCore.Functions.GetPlayers()
+     local list_of_players_with_same_job = {}
+     for _, id in pairs(players) do
+          local player = QBCore.Functions.GetPlayer(id)
+          if (player.PlayerData.job.name == PlayerJob.name) and (id ~= source) then
+               list_of_players_with_same_job[#list_of_players_with_same_job + 1] = id
+          end
      end
+     cb(list_of_players_with_same_job)
 end)
 
-QBCore.Commands.Add('saveInsideGarage', 'Save a vehicle as shared vehicle inside a garage', {}, true, function(source, args)
-     local Player = QBCore.Functions.GetPlayer(source)
+--- put all vehicles back to the garage
+---@param resourceName any
+RegisterNetEvent('onResourceStart', function(resourceName)
+     if resourceName ~= GetCurrentResourceName() then return end
+     MySQL.Async.execute('UPDATE keep_garage SET state = ? WHERE state = ?', { 1, 0 })
+end)
 
-     for key, value in pairs(Config.AllowledList) do
-          if value == Player.PlayerData.citizenid then
-               TriggerClientEvent('keep-jobgarages:client:newVehicleSetup', source)
-               return
-          end
-     end
-     TriggerClientEvent('QBCore:Notify', source, 'You are not whitelisted', 'error')
-end, 'user')
-
-QBCore.Functions.CreateCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(source, cb)
-     local players = QBCore.Functions.GetPlayers()
-     local tmp = {}
-     for key, id in pairs(players) do
-          local player = QBCore.Functions.GetPlayer(id)
-          if player.PlayerData.job.name == 'police' then
-               tmp[#tmp + 1] = id
-          end
-     end
-     cb(tmp)
+RegisterNetEvent('keep-jobgarages:server:Notification', function(msg, _type)
+     local src = source
+     Notification(src, msg, _type)
 end)

@@ -1,125 +1,45 @@
 local QBCore = exports['qb-core']:GetCoreObject()
-local Open = {}
+local keep_menu = {}
 local Cachedata = nil
 local currentVeh = {}
 
-function Open:garage_menu()
-     local openMenu = {
-          {
-               header = 'Personal Vehicles',
-               txt = "List of owned vehicles",
-               disabled = true,
-          },
-          {
-               header = 'Shared Vehicles',
-               txt = "List of shared vehicles",
-               params = {
-                    event = 'keep-jobgarages:menu:open:get_vehicles_list'
-               }
-          },
-     }
-     openMenu[#openMenu + 1] = {
-          header = 'Leave',
-          icon = 'fa-solid fa-circle-xmark',
-          params = {
-               event = "keep-jobgarages:client:close_menu"
-          }
-     }
-     exports['qb-menu']:openMenu(openMenu)
+function Open_menu()
+     Config.menu = 'keep-menu'
+     if Config.menu == 'keep-menu' then
+          keep_menu:garage_menu()
+          return
+     end
 end
+
+AddEventHandler('keep-jobgarages:menu:open:garage_menu', function(option)
+     Open_menu()
+end)
+
+---------------------------------------------------- functions ------------------------------------------
 
 local function isWhitelisted(currentgarage, model)
      if type(model) == "number" then model = tostring(model) end
      local list = Config.JobGarages[currentgarage].WhiteList
      if not list then return end
-     for key, value in pairs(list) do
+     for _, value in ipairs(list) do
           if value.spawncode == model then
                return true, value
           end
      end
-     return false
+     return false, nil
 end
 
-local function get_vehicle_label(currentgarage, model)
+local function get_vehicle(currentgarage, model)
      local state, info = isWhitelisted(currentgarage, model)
-     return info.name
-end
+     if not state then
+          print('error: check the vehiclewhite list')
+          print('helper: vehicle that is saved in this is not in whitelist anymore')
+          print('helper: remove that vehicle in database or add it back to whitelist')
+          TriggerServerEvent('keep-jobgarages:server:Notification', 'Vehiclewhite error', 'error')
 
-function Open:categories(data)
-     Cachedata = data
-     local openMenu = {
-          {
-               header = "Go Back",
-               icon = 'fa-solid fa-angle-left',
-               params = {
-                    event = "keep-jobgarages:menu:open:garage_menu",
-               }
-          },
-          {
-               header = 'Leave',
-               icon = 'fa-solid fa-circle-xmark',
-               params = {
-                    event = "keep-jobgarages:client:close_menu"
-               }
-          }
-     }
-     local currentgarage = GetCurrentgarage()
-     for key, DISTINCT in pairs(data.DISTINCT) do
-          openMenu[#openMenu + 1] = {
-               header = get_vehicle_label(currentgarage, DISTINCT.model),
-               txt = #data[DISTINCT.model] .. " Vehicles",
-               params = {
-                    event = "keep-jobgarages:menu:open:vehicles_list",
-                    args = {
-                         type = 'vehicles_inside_category',
-                         model = DISTINCT.model -- local data
-                    }
-               }
-          }
+          return '', ''
      end
-
-     exports['qb-menu']:openMenu(openMenu)
-end
-
-function Open:vehicles_inside_category(data)
-     if data.type == 'delete_already_out_vehicle' and data.veh then
-          TriggerServerEvent('keep-jobgarages:server:update_out_vehicles', {
-               type = 'remove',
-               plate = data.plate
-          })
-          QBCore.Functions.DeleteVehicle(data.veh)
-          while DoesEntityExist(data.veh) do Wait(50) end
-     end
-     local openMenu = {
-          {
-               header = "Go Back",
-               icon = 'fa-solid fa-angle-left',
-               params = {
-                    event = "keep-jobgarages:menu:open:get_vehicles_list",
-               }
-          },
-     }
-
-     for k, vehicle in pairs(Cachedata[data.model]) do
-          local state = 'out'
-          if vehicle.state == 1 then state = 'In' end
-          local info = vehicle.plate .. ' | ' .. state
-          openMenu[#openMenu + 1] = {
-               header = vehicle.name,
-               txt = info,
-               -- disabled = state,
-               params = {
-                    event = "keep-jobgarages:menu:open:vehicle_actions",
-                    args = {
-                         type = 'vehicle_actions_menu',
-                         model = data.model, -- local data
-                         key = k,
-                    }
-               }
-          }
-     end
-
-     exports['qb-menu']:openMenu(openMenu)
+     return info.label, info.icon
 end
 
 local function split(s, delimiter)
@@ -131,16 +51,17 @@ local function split(s, delimiter)
 end
 
 local function is_restricted_by_grades(vehicle)
-     if string.len(vehicle.permissions.grades) == 0 then
-          return false
+     for key, value in pairs(vehicle.permissions.grades) do
+          if value then
+               return value
+          end
      end
-     return true
+     return false
 end
 
 local function check_grades(vehicle)
-     local grades = split(vehicle.permissions.grades, ",")
-     for key, value in pairs(grades) do
-          if GetJobInfo().grade.level == tonumber(value) then
+     for key, value in pairs(vehicle.permissions.grades) do
+          if GetJobInfo().grade.level == tonumber(key) and value == true then
                return true
           end
      end
@@ -164,70 +85,308 @@ local function check_cids(vehicle)
      return false
 end
 
-function Open:vehicle_actions_menu(data)
-     -- spawn shell
+---------------------------------------------------- keep-menu ------------------------------------------
+
+function keep_menu:garage_menu()
+     local Menu = {}
+     Menu = {
+          {
+               header = 'Shared Garage',
+               subheader = 'Current: ' .. Config.JobGarages[GetCurrentgarage()].label,
+               icon = 'fa-solid fa-car-on',
+               disabled = true
+          },
+          {
+               header = 'Shared Vehicles',
+               subheader = 'List of shared vehicles',
+               icon = 'fa-solid fa-car',
+               args = { 2 },
+               action = function(args)
+                    local currentgarage = GetCurrentgarage()
+                    TriggerCallback('keep-jobgarages:server:fetch_categories', function(result)
+                         Cachedata = result
+                         keep_menu:categories(result)
+                    end, {
+                         garage = currentgarage
+                    })
+               end,
+               submenu = true,
+          },
+          {
+               header = 'Leave',
+               event = 'keep-menu:closeMenu',
+               leave = true
+          },
+     }
+
+     exports['keep-menu']:createMenu(Menu)
+end
+
+function keep_menu:categories(data)
+     local Menu = {}
+     Menu = {
+          {
+               header = "Go Back",
+               args = { 0 },
+               action = function()
+                    keep_menu:garage_menu()
+               end,
+               back = true
+          },
+          {
+               header = 'Leave',
+               event = "keep-menu:closeMenu",
+               leave = true
+          },
+     }
+
+     local currentgarage = GetCurrentgarage()
+     for _, DISTINCT in pairs(data.DISTINCT) do
+          local lebel, icon = get_vehicle(currentgarage, DISTINCT.model)
+          Menu[#Menu + 1] = {
+               header = lebel,
+               subheader = #data[DISTINCT.model] .. " Vehicles",
+               icon = icon,
+               args = { DISTINCT.model, lebel, icon },
+               action = function(args)
+                    keep_menu:vehicles_inside_category(args[1], args[2], args[3])
+               end
+          }
+     end
+
+     exports['keep-menu']:createMenu(Menu)
+end
+
+function keep_menu:vehicles_inside_category(model, lebel, icon)
+     local Menu = {
+          {
+               header = "Go Back",
+               args = { 0 },
+               action = function()
+                    keep_menu:categories(Cachedata)
+               end,
+               back = true
+          },
+     }
+
+     for k, vehicle in pairs(Cachedata[model]) do
+          local state = 'out'
+          if vehicle.state == 1 then state = 'In' end
+          Menu[#Menu + 1] = {
+               header = 'Name: ' .. vehicle.name,
+               subheader = 'Model: ' .. lebel,
+               footer = string.format('Plate: %s | State: %s', vehicle.plate, state),
+               icon = icon,
+               args = {
+                    {
+                         type = 'vehicle_actions_menu',
+                         model = model, -- local data
+                         lebel = lebel,
+                         key = k,
+                         icon = icon
+                    }
+               },
+               action = function(args)
+                    keep_menu:vehicle_actions_menu(args[1])
+               end
+          }
+     end
+
+     exports['keep-menu']:createMenu(Menu)
+end
+
+function keep_menu:take_out_menu(data, vehicle, veh, per)
+     local engine = math.floor(vehicle.engine / 10)
+     local body = math.floor(vehicle.body / 10)
+     local fuel = vehicle.fuel
+
+     local status = "Engine: " .. engine .. " | Body: " .. body .. " | fuel: " .. fuel
+     local Menu = {
+          {
+               header = "Go Back",
+               icon = 'fa-solid fa-angle-left',
+               args = {
+                    {
+                         model = data.model,
+                         veh = veh,
+                         plate = vehicle.plate
+                    }
+               },
+               action = function(args)
+                    TriggerServerEvent('keep-jobgarages:server:update_out_vehicles', {
+                         type = 'remove',
+                         plate = args[1].plate
+                    })
+                    QBCore.Functions.DeleteVehicle(args[1].veh)
+                    while DoesEntityExist(args[1].veh) do Wait(50) end
+                    local lebel, icon = get_vehicle(GetCurrentgarage(), args[1].model)
+                    keep_menu:vehicles_inside_category(args[1].model, lebel, icon)
+               end
+          },
+          {
+               header = 'Take Out Vehicle',
+               event = 'keep-jobgarages:client:take_out',
+               icon = 'fa-solid fa-arrow-right-from-bracket',
+               args = {
+                    {
+                         vehicle = veh,
+                         fuel = fuel,
+                         engine = engine,
+                         body = body,
+                         plate = vehicle.plate,
+                    }
+               }
+          },
+          {
+               header = 'Vehicle Status',
+               icon = 'fa-solid fa-car-battery',
+               subheader = status,
+               disabled = true
+          },
+          {
+               header = 'Vehicle Parking Log',
+               icon = 'fa-solid fa-clipboard-question',
+               args = { { plate = vehicle.plate, data = data, vehicle = vehicle, veh = veh } },
+               action = function(args)
+                    keep_menu:vehicle_parking_log(args[1])
+               end
+          },
+     }
+
+     if per then
+          Menu[#Menu + 1] = {
+               header = 'Duplicate The Vehicle',
+               type = 'server',
+               event = 'keep-jobgarages:server:dupe',
+               icon = 'fa-solid fa-clone',
+               args = { vehicle.plate }
+          }
+
+          Menu[#Menu + 1] = {
+               header = "Modify Vehicle's Name",
+               type = 'server',
+               event = 'keep-jobgarages:server:dupe',
+               icon = 'fa-solid fa-pen-to-square',
+               action = function()
+                    local Input = {
+                         inputs = {
+                              {
+                                   type = 'text',
+                                   isRequired = true,
+                                   name = 'vehicle_name',
+                                   text = "What vehicle's name will be?",
+                                   icon = 'fa-solid fa-money-bill-trend-up',
+                                   title = 'Vehicle Name',
+                              },
+                         }
+                    }
+
+                    local inputData, reason = exports['keep-input']:ShowInput(Input)
+                    if reason == 'submit' then
+                         if not inputData.vehicle_name then return end
+                         TriggerServerEvent('keep-jobgarages:server:update_vehicle_name', inputData.vehicle_name,
+                              vehicle.plate)
+                    end
+               end
+          }
+
+          Menu[#Menu + 1] = {
+               header = "Modify Vehicle's Plate",
+               type = 'server',
+               event = 'keep-jobgarages:server:dupe',
+               icon = 'fa-solid fa-pen-to-square',
+               action = function()
+                    local Input = {
+                         inputs = {
+                              {
+                                   type = 'text',
+                                   isRequired = true,
+                                   name = 'vehicle_plate',
+                                   text = "What vehicle's name will be?",
+                                   icon = 'fa-solid fa-money-bill-trend-up',
+                                   title = 'Vehicle Plate',
+                                   force_value = vehicle.plate,
+                              },
+                         }
+                    }
+
+                    local inputData, reason = exports['keep-input']:ShowInput(Input)
+                    if reason == 'submit' then
+                         if not inputData.vehicle_plate then return end
+                         TriggerServerEvent('keep-jobgarages:server:update_vehicle_plate', inputData.vehicle_plate,
+                              vehicle.plate)
+                    end
+               end
+          }
+     end
+
+     local op = exports['keep-menu']:createMenu(Menu)
+     if not op or op == vehicle.plate then
+          if op == vehicle.plate then
+               TriggerServerEvent('keep-jobgarages:server:dupe', vehicle.plate)
+          end
+          TriggerServerEvent('keep-jobgarages:server:update_out_vehicles', {
+               type = 'remove',
+               plate = vehicle.plate
+          })
+          QBCore.Functions.DeleteVehicle(veh)
+     end
+end
+
+function keep_menu:vehicle_actions_menu(data)
      local vehicle = Cachedata[data.model][data.key]
      local nearspawnpoint = GetNearspawnpoint()
      local currentgarage = GetCurrentgarage()
 
      if is_restricted_by_cid(vehicle) then
           if check_cids(vehicle) == false then
-               QBCore.Functions.Notify('This vehicle is not allowed for you', 'error', 2500)
-               TriggerEvent('keep-jobgarages:menu:open:vehicles_list', {
-                    type = 'vehicles_inside_category',
-                    model = data.model
-               })
+               TriggerServerEvent('keep-jobgarages:server:Notification', 'This vehicle is not allowed for you', 'error')
+               keep_menu:vehicles_inside_category(data.model, data.lebel, data.icon)
                return
           end
      end
 
      if is_restricted_by_grades(vehicle) then
           if check_grades(vehicle) == false then
-               QBCore.Functions.Notify('This vehicle is not allowed for you current rank', 'error', 2500)
-               TriggerEvent('keep-jobgarages:menu:open:vehicles_list', {
-                    type = 'vehicles_inside_category',
-                    model = data.model
-               })
+               TriggerServerEvent('keep-jobgarages:server:Notification',
+                    'This vehicle is not allowed for you current rank', 'error')
+               keep_menu:vehicles_inside_category(data.model, data.lebel, data.icon)
                return
           end
      end
 
      if vehicle.state == 0 then
-          QBCore.Functions.Notify('Vehicle is already out!', 'error', 2500)
-          -- check if this player is toke this vehicle out if yes then show menu else go back to last menu
-          QBCore.Functions.TriggerCallback('keep-jobgarages:server:is_this_thePlayer_that_has_vehicle', function(result)
-               if result then
-                    take_out_menu(data, vehicle, nil, {
-                         active = true,
-                         data = ''
-                    })
-                    return
-               end
-               TriggerEvent('keep-jobgarages:menu:open:vehicles_list', {
-                    type = 'vehicles_inside_category',
-                    model = data.model
-               })
-          end, vehicle.plate)
-
+          TriggerServerEvent('keep-jobgarages:server:Notification', 'Vehicle is already out!', 'error')
+          keep_menu:vehicles_inside_category(data.model, data.lebel, data.icon)
           return
      end
-     QBCore.Functions.TriggerCallback('keep-jobgarages:server:doesVehicleExist', function(result)
+
+     TriggerCallback('keep-jobgarages:server:doesVehicleExist', function(result, per)
           if result == true then
-               QBCore.Functions.Notify('Vehicle is already out!', 'error', 2500)
+               TriggerServerEvent('keep-jobgarages:server:Notification', 'Vehicle is already out!', 'error')
                TriggerEvent('keep-jobgarages:menu:open:vehicles_list', {
                     type = 'vehicles_inside_category',
                     model = data.model -- local data
                })
-               take_out_menu(data, vehicle)
                return
           end
+
+          if not currentgarage or not nearspawnpoint then
+               TriggerServerEvent('keep-jobgarages:server:Notification', 'Try to find a free spot!', 'error')
+               return
+          end
+
           QBCore.Functions.SpawnVehicle(data.model, function(veh)
+               SetEntityAlpha(veh, 100, true)
                QBCore.Functions.SetVehicleProperties(veh, vehicle.mods)
                currentVeh = {
                     veh = veh,
                     plate = vehicle.plate
                }
                SetVehicleNumberPlateText(veh, vehicle.plate)
+               if veh and vehicle.plate then
+                    SetNetworkIdAlwaysExistsForPlayer(NetworkGetNetworkIdFromEntity(veh), PlayerPedId(), true)
+               end
                SetEntityHeading(veh, Config.JobGarages[currentgarage].spawnPoint[nearspawnpoint].w)
                PlaceObjectOnGroundProperly(veh)
                FreezeEntityPosition(veh, true)
@@ -237,189 +396,73 @@ function Open:vehicle_actions_menu(data)
                     netId = NetworkGetNetworkIdFromEntity(veh),
                     plate = vehicle.plate
                })
-               take_out_menu(data, vehicle, veh)
                RecoverVehicleDamages(veh, vehicle)
+               keep_menu:take_out_menu(data, vehicle, veh, per)
           end, Config.JobGarages[currentgarage].spawnPoint[nearspawnpoint], true)
      end, vehicle.plate)
 end
 
-AddEventHandler('keep-jobgarages:client:take_out_menu', function(data)
-     take_out_menu(data.data, data.vehicle, data.veh, data.Retrive)
-end)
-
-function take_out_menu(data, vehicle, veh, Retrive)
-     if Retrive == nil then
-          Retrive = {}
-          Retrive.active = false
-     end
-     local engine = math.floor(vehicle.engine / 10)
-     local body = math.floor(vehicle.body / 10)
-     local fuel = vehicle.fuel
-
-     local status = "Engine: " .. engine .. " | Body: " .. body .. " | fuel: " .. fuel
-     local openMenu = {
+function keep_menu:vehicle_parking_log(data)
+     local Menu = {
           {
                header = "Go Back",
                icon = 'fa-solid fa-angle-left',
-               params = {
-                    event = "keep-jobgarages:menu:open:vehicles_list",
-                    args = {
-                         type = 'delete_already_out_vehicle',
-                         model = data.model, -- local data
-                         veh = veh,
-                         plate = vehicle.plate
-                    }
-               }
-          },
-          {
-               header = 'Take Out Vehicle',
-               disabled = Retrive.active,
-               params = {
-                    event = 'keep-jobgarages:client:take_out',
-                    args = {
-                         vehicle = veh,
-                         fuel = fuel,
-                         engine = engine,
-                         body = body,
-                         plate = vehicle.plate
-                    }
-               }
-          },
-          {
-               header = 'Vehicle Status',
-               txt = status,
-               disabled = true
-          },
-          {
-               header = 'Retrive Vehicle',
-               disabled = not Retrive.active,
-               params = {
-                    event = "keep-jobgarages:client:retrive_vehicle",
-                    args = vehicle.plate
-               }
-          },
-          {
-               header = 'Vehicle Parking Log',
-               params = {
-                    event = "keep-jobgarages:client:get_vehicle_log",
-                    args = { plate = vehicle.plate, data = data, vehicle = vehicle, veh = veh, Retrive = Retrive }
-               }
-          },
-     }
-     exports['qb-menu']:openMenu(openMenu)
-end
-
-function Open:vehicle_parking_log(LOGS)
-
-     local openMenu = {
-          {
-               header = "Go Back",
-               icon = 'fa-solid fa-angle-left',
-               params = {
-                    event = "keep-jobgarages:menu:open:vehicles_list",
-                    data = '_type'
-               }
+               args = { { data = data.data, vehicle = data.vehicle, veh = data.veh } },
+               action = function(args)
+                    keep_menu:take_out_menu(args[1].data, args[1].vehicle, args[1].veh)
+               end
           },
      }
 
-     for key, log in pairs(LOGS) do
-          local header = log.action .. ' | ' .. log.created
-          local data = json.decode(log.data)
-          local sub_header = data.charinfo.firstname .. " " .. data.charinfo.lastname
-          openMenu[#openMenu + 1] = {
-               header = header,
-               txt = sub_header,
-               icon = 'fa-solid fa-arrow-right-to-bracket'
-          }
-     end
-
-     exports['qb-menu']:openMenu(openMenu)
-end
-
-AddEventHandler('keep-jobgarages:client:retrive_vehicle', function(plate)
-     TriggerServerEvent('keep-jobgarages:server:retrive_vehicle', plate)
-end)
-
-AddEventHandler('keep-jobgarages:client:get_vehicle_log', function(data)
-     local openMenu = {
-          {
-               header = "Go Back",
-               icon = 'fa-solid fa-angle-left',
-               params = {
-                    event = "keep-jobgarages:client:take_out_menu",
-                    args = { data = data.data, vehicle = data.vehicle, veh = data.veh, Retrive = data.Retrive }
-               }
-          },
-     }
-
-     QBCore.Functions.TriggerCallback('keep-jobgarages:server:get_vehicle_log', function(LOGS)
+     TriggerCallback('keep-jobgarages:server:get_vehicle_log', function(LOGS)
           local icons = {
                retrive = 'fa-solid fa-arrow-right-arrow-left',
                store = 'fa-solid fa-arrow-right-to-bracket',
                out = 'fa-solid fa-arrow-right-from-bracket'
           }
           if type(LOGS) == "table" then
-               for key, log in pairs(LOGS) do
+               for _, log in pairs(LOGS) do
 
-                    local header = log.action .. ' | ' .. log.Action_timestamp
+                    local header = log.action
                     local _data = json.decode(log.data)
                     local sub_header = "Name: " .. _data.charinfo.firstname .. " " .. _data.charinfo.lastname
-                    openMenu[#openMenu + 1] = {
+                    Menu[#Menu + 1] = {
                          header = header,
-                         txt = sub_header,
+                         subheader = sub_header,
+                         footer = log.Action_timestamp,
                          icon = icons[log.action],
                          disabled = true
                     }
                end
 
-               exports['qb-menu']:openMenu(openMenu)
+               local op = exports['keep-menu']:createMenu(Menu)
+
+               if not op then
+                    TriggerServerEvent('keep-jobgarages:server:update_out_vehicles', {
+                         type = 'remove',
+                         plate = data.plate
+                    })
+                    QBCore.Functions.DeleteVehicle(data.veh)
+               end
           end
      end, { plate = data.plate })
-end)
-
-AddEventHandler('keep-jobgarages:menu:open:garage_menu', function(option)
-     Open:garage_menu()
-end)
-
-AddEventHandler('keep-jobgarages:menu:open:get_vehicles_list', function()
-     local currentgarage = GetCurrentgarage()
-     QBCore.Functions.TriggerCallback('keep-jobgarages:server:fetch_categories', function(result)
-          Open:categories(result)
-     end, {
-          garage = currentgarage
-     })
-end)
-
-AddEventHandler('keep-jobgarages:menu:open:vehicles_list', function(data)
-     Open:vehicles_inside_category(data)
-end)
-
-AddEventHandler('keep-jobgarages:menu:open:vehicle_actions', function(vehicles_data)
-     Open:vehicle_actions_menu(vehicles_data)
-end)
-
-AddEventHandler('keep-jobgarages:menu:open:vehicle_parking_log', function(option)
-     Open:vehicle_parking_log()
-end)
+end
 
 AddEventHandler('keep-jobgarages:client:take_out', function(data)
+     data = data[1]
      local plate = QBCore.Functions.GetPlate(data.vehicle)
+     ResetEntityAlpha(data.vehicle)
      FreezeEntityPosition(data.vehicle, false)
+     SetEntityCollision(veh, true, true)
      SetEntityAsMissionEntity(data.vehicle, true, true)
-     TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(data.vehicle))
-     QBCore.Functions.TriggerCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(result)
-          for key, id in pairs(result) do
-               TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys_2', plate, id)
+     TriggerEvent("vehiclekeys:client:SetOwner", plate)
+     exports[Config.fuel_script]:SetFuel(data.vehicle, data.fuel)
+     TriggerCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(receivers)
+          for _, id in pairs(receivers) do
+               TriggerServerEvent('qb-vehiclekeys:server:GiveVehicleKeys', id, plate)
           end
-     end)
-     exports['LegacyFuel']:SetFuel(data.vehicle, data.fuel)
+     end, PlayerJob)
      TriggerServerEvent('keep-jobgarages:server:update_state', data.plate, data)
-end)
-
--- restricted functions
-
-AddEventHandler('keep-jobgarages:client:close_menu', function()
-     TriggerEvent('qb-menu:closeMenu')
 end)
 
 AddEventHandler('keep-jobgarages:client:delete_if_exist', function(plate, veh)
@@ -443,37 +486,52 @@ AddEventHandler('keep-jobgarages:client:keep_put_back_to_garage', function(e)
      if IsInVehicle then
           veh = GetVehiclePedIsIn(plyped, false)
      else
-          local vehcheck = QBCore.Functions.GetClosestVehicle(playercoord)
-          -- local platecheck = QBCore.Functions.GetPlate(vehcheck)
-          if vehcheck ~= nil and NetworkGetEntityIsNetworked(vehcheck) and DoesEntityExist(vehcheck) then
-               veh = vehcheck
+          local vehcheck, distance = QBCore.Functions.GetClosestVehicle(playercoord)
+          if distance < 3.0 then
+               if vehcheck ~= nil and NetworkGetEntityIsNetworked(vehcheck) and DoesEntityExist(vehcheck) and
+                   IsEntityAVehicle(vehcheck) then
+                    veh = vehcheck
+               end
+          else
+               veh = nil
           end
-     end
 
-     if veh == nil then return end
+     end
+     if veh == nil then
+          local inGarageStation = GetInGarageStation()
+          if CanPlayerUseGarage() and not IsPauseMenuActive() and inGarageStation then
+               -- store vehicle
+               if IsPedInAnyVehicle(plyped, false) then
+                    TriggerEvent('keep-jobgarages:client:keep_put_back_to_garage')
+                    return
+               end
+               Open_menu()
+          end
+          return
+     end
      if IsInVehicle then
           TaskLeaveVehicle(plyped, veh, 0)
           while IsPedInAnyVehicle(plyped, false) do
                Wait(100)
           end
+          Wait(500)
      end
-     local c_car = QBCore.Functions.GetVehicleProperties(veh)
-     c_car.metadata = GetVehicleDamages(veh)
 
-     QBCore.Functions.TriggerCallback('keep-jobgarages:server:can_we_store_this_vehicle', function(result)
+     local VehicleProperties = {}
+     VehicleProperties.metadata = GetVehicleDamages(veh)
+     VehicleProperties.VehicleProperties = QBCore.Functions.GetVehicleProperties(veh)
+     TriggerCallback('keep-jobgarages:server:can_we_store_this_vehicle', function(result)
           if result ~= nil then
                local currentgarage = GetCurrentgarage()
-               c_car.currentgarage = currentgarage
-               TriggerServerEvent('keep-jobgarages:server:update_state', c_car.plate, c_car)
-               Wait(150)
-               TriggerEvent('keep-jobgarages:client:delete_if_exist', c_car.plate, veh)
+               VehicleProperties.currentgarage = currentgarage
+               TriggerServerEvent('keep-jobgarages:server:update_state', VehicleProperties.VehicleProperties.plate,
+                    VehicleProperties)
+               TriggerEvent('keep-jobgarages:client:delete_if_exist', VehicleProperties.VehicleProperties.plate, veh)
                return
           end
-          QBCore.Functions.Notify('You can not store this vehicle', 'error', 5000)
-     end, c_car)
+          TriggerServerEvent('keep-jobgarages:server:Notification', 'You can not store this vehicle', 'error')
+     end, VehicleProperties)
 end)
-
---
 
 RegisterKeyMapping('+garage_menu', 'garage_menu', 'keyboard', 'u')
 RegisterCommand('+garage_menu', function()
@@ -485,21 +543,6 @@ RegisterCommand('+garage_menu', function()
                TriggerEvent('keep-jobgarages:client:keep_put_back_to_garage')
                return
           end
-          Open:garage_menu()
+          Open_menu()
      end
 end, false)
-
--- local radialMenuItemId = exports['qb-radialmenu']:AddOption({
---      id = 'keep_put_back_to_garage',
---      title = 'Park (Job)',
---      icon = 'car',
---      type = 'client',
---      event = 'keep-jobgarages:client:keep_put_back_to_garage',
---      shouldClose = true
--- })
-
--- AddEventHandler('onResourceStop', function(resourceName)
---      if resourceName == GetCurrentResourceName() then
---           exports['qb-radialmenu']:RemoveOption(radialMenuItemId)
---      end
--- end)

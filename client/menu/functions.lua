@@ -1,3 +1,5 @@
+local QBCore = exports['qb-core']:GetCoreObject()
+
 local function Round(num, dp)
      local mult = 10 ^ (dp or 0)
      return math.floor(num * mult + 0.5) / mult
@@ -86,4 +88,49 @@ function RecoverVehicleDamages(veh, vehicle)
 
      SetVehicleEngineHealth(veh, engine)
      SetVehicleBodyHealth(veh, body)
+end
+
+-- Functions
+local function EnumerateEntitiesWithinDistance(entities, isPlayerEntities, coords, maxDistance)
+     local nearbyEntities = {}
+     if coords then
+          coords = vector3(coords.x, coords.y, coords.z)
+     else
+          local playerPed = PlayerPedId()
+          coords = GetEntityCoords(playerPed)
+     end
+     for k, entity in pairs(entities) do
+          local distance = #(coords - GetEntityCoords(entity))
+          if distance <= maxDistance then
+               nearbyEntities[#nearbyEntities + 1] = isPlayerEntities and k or entity
+          end
+     end
+     return nearbyEntities
+end
+
+local function GetVehiclesInArea(coords, maxDistance) -- Vehicle inspection in designated area
+     return EnumerateEntitiesWithinDistance(QBCore.Functions.GetVehicles(), false, coords, maxDistance)
+end
+
+local function IsSpawnPointClear(coords, maxDistance) -- Check the spawn point to see if it's empty or not:
+     return #GetVehiclesInArea(coords, maxDistance) == 0
+end
+
+function GetNearSpawnPoint(inGarageStation, currentgarage) -- Get nearest spawn point
+     local near = nil
+     local distance = 50
+     if inGarageStation and currentgarage ~= nil then
+          for k, v in pairs(Config.JobGarages[currentgarage].spawnPoint) do
+               if IsSpawnPointClear(vector3(v.x, v.y, v.z), 2.5) then
+                    local ped = PlayerPedId()
+                    local pos = GetEntityCoords(ped)
+                    local cur_distance = #(pos - vector3(v.x, v.y, v.z))
+                    if cur_distance < distance then
+                         distance = cur_distance
+                         near = k
+                    end
+               end
+          end
+     end
+     return near
 end

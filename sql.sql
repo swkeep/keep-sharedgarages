@@ -4,20 +4,19 @@ CREATE TABLE IF NOT EXISTS `keep_garage` (
   `name` varchar(50) DEFAULT NULL,
   `model` varchar(50) DEFAULT NULL,
   `hash` varchar(50) DEFAULT NULL,
-  `mods` LONGTEXT NOT NULL DEFAULT '0',
+  `mods` LONGTEXT NOT NULL ,
   `plate` varchar(50) DEFAULT NULL,
   `garage` varchar(50) DEFAULT NULL,
-  `fuel` INT(11) DEFAULT NULL,
+  `fuel` TINYINT DEFAULT NULL,
   `engine` FLOAT DEFAULT NULL,
   `body` FLOAT DEFAULT NULL,
-  `state` INT(11) DEFAULT NULL,
-  `metadata` LONGTEXT NOT NULL DEFAULT '0',
-  `permissions ` TEXT NOT NULL DEFAULT '0',
+  `state` BOOLEAN NOT NULL DEFAULT TRUE,
+  `is_customizable` BOOLEAN NOT NULL DEFAULT TRUE,
+  `metadata` LONGTEXT NOT NULL,
+  `permissions ` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   KEY `plate` (`plate`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
-
-metadata 
 
 CREATE TABLE IF NOT EXISTS `keep_garage_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
