@@ -26,7 +26,7 @@ end
 
 function out_vehicles:search(plate)
      if self.vehicles[string.upper(plate)] then
-          return true, plate, elf.vehicles[string.upper(plate)]
+          return true, plate, self.vehicles[string.upper(plate)]
      else
           return false, nil, nil
      end
