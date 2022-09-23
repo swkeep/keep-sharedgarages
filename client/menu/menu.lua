@@ -235,7 +235,6 @@ function keep_menu:take_out_menu(data, vehicle, veh, per)
           },
           {
                header = 'Take Out Vehicle',
-               event = 'keep-jobgarages:client:take_out',
                icon = 'fa-solid fa-arrow-right-from-bracket',
                args = {
                     {
@@ -245,7 +244,27 @@ function keep_menu:take_out_menu(data, vehicle, veh, per)
                          body = body,
                          plate = vehicle.plate,
                     }
-               }
+               },
+               action = function()
+                    ResetEntityAlpha(veh)
+                    FreezeEntityPosition(veh, false)
+                    SetEntityCollision(veh, true, true)
+                    SetEntityAsMissionEntity(dveh, true, true)
+                    TriggerEvent("vehiclekeys:client:SetOwner", vehicle.plate)
+                    exports[Config.fuel_script]:SetFuel(veh, fuel)
+                    TriggerCallback('keep-jobgarages:server:give_keys_to_all_same_job', function(receivers)
+                         for _, id in pairs(receivers) do
+                              TriggerServerEvent('qb-vehiclekeys:server:GiveVehicleKeys', id, vehicle.plate)
+                         end
+                    end, PlayerJob)
+                    TriggerServerEvent('keep-jobgarages:server:update_state', vehicle.plate, {
+                         vehicle = veh,
+                         fuel = fuel,
+                         engine = engine,
+                         body = body,
+                         plate = vehicle.plate,
+                    })
+               end
           },
           {
                header = 'Vehicle Status',
