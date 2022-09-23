@@ -181,7 +181,7 @@ function keep_menu:vehicles_inside_category(model, lebel, icon)
 
      for k, vehicle in pairs(Cachedata[model]) do
           local state = 'out'
-          if vehicle.state == 1 then state = 'In' end
+          if vehicle.state == true then state = 'In' end
           Menu[#Menu + 1] = {
                header = 'Name: ' .. vehicle.name,
                subheader = 'Model: ' .. lebel,

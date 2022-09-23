@@ -1,9 +1,9 @@
 Config = Config or {}
 
-Config.fuel_script = 'keep-fuel'
+Config.fuel_script = 'LegacyFuel'
 
 Config.AllowledList = {
-     'TOA30976'
+     'LQB94352'
 }
 
 Config.MagicTouch = false
