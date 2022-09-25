@@ -82,7 +82,7 @@ local function check_player_duty()
 end
 
 function CanPlayerUseGarage()
-     if not GetCurrentgarageData().type == 'job' then
+     if GetCurrentgarageData().type == 'job' then
           -- is a job garage
           if does_player_same_job_as_garage() then
                return check_player_duty()
