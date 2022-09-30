@@ -250,7 +250,7 @@ RegisterNetEvent("keep-jobgarages:server:update_state", function(plate, properti
           return
      end
      local STATE = MySQL.Sync.fetchScalar('SELECT state FROM keep_garage WHERE plate = ?', { plate })
-     if STATE == 0 then
+     if STATE == false then
           -- save damages too
           if properties ~= nil then
                local s = 'UPDATE keep_garage SET state = ?, garage = ? ,fuel = ? ,engine = ?, body = ?, metadata = ? WHERE plate = ?'

@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `keep_garage` (
   `body` FLOAT DEFAULT NULL,
   `state` BOOLEAN NOT NULL DEFAULT TRUE,
   `is_customizable` BOOLEAN NOT NULL DEFAULT TRUE,
-  `metadata` LONGTEXT NOT NULL,
+  `metadata` LONGTEXT DEFAULT NULL,
   `permissions` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   KEY `plate` (`plate`)
