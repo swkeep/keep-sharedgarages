@@ -5,7 +5,6 @@ author "Swkeep#7049"
 
 shared_script {
      'config.lua',
-     '*-config.lua', --no-commit
      'shared/shared_main.lua'
 }
 

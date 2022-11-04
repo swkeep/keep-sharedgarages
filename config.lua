@@ -36,7 +36,7 @@ Config.Garages = {
           label = 'Police Garage (mrpd)',
           type = 'job',
           job = { 'police' }, -- accpets just one job
-          onDuty = true,
+          onDuty = false,
           spawnPoint = {
                vector4(445.92, -996.92, 24.96, 270.5),
                vector4(445.92, -994.25, 24.96, 270.33),
@@ -79,12 +79,13 @@ Config.Garages = {
           label = 'Police Garage (mrpd)',
           type = 'job',
           job = { 'police' },
+          onDuty = false,
           spawnPoint = {
-               vector4(449.54, -1025.0, 27.96, 186.01),
-               vector4(446.05, -1025.0, 28.03, 184.5),
-               vector4(442.55, -1026.0, 28.09, 184.49),
-               vector4(439.1, -1026.0, 28.16, 185.11),
-               vector4(435.67, -1026.0, 28.22, 184.95)
+               vec4(435.481201, -1026.593750, 27.842340, 185.000000),
+               vec4(438.973846, -1026.226074, 27.777569, 185.000000),
+               vec4(442.466492, -1025.858521, 27.712795, 185.000000),
+               vec4(445.959137, -1025.490845, 27.648024, 185.000000),
+               vec4(449.451782, -1025.123169, 27.583252, 185.000000),
           },
           zones = {
                vector2(455, -1027.8),
@@ -94,7 +95,11 @@ Config.Garages = {
           },
           minz = 26.66,
           maxz = 32.66,
-          WhiteList = Config.VehicleWhiteList['defaultPolice']
+          WhiteList = Config.VehicleWhiteList['defaultPolice'],
+          garage_management = {
+               -- access to garage management
+               ['GBC74362'] = true
+          }
      },
      ['mrpd_back'] = {
           label = 'Police Garage (mrpd)',
@@ -170,12 +175,26 @@ Config.Garages = {
                vector2(344.26721191406, -2036.0698242188),
                vector2(332.54577636719, -2050.0180664062)
           },
-          minz = 20.0,
-          maxz = 23.0,
-          WhiteList = Config.VehicleWhiteList['vagos_yard']
+          minz = 19.0,
+          maxz = 24.0,
+          WhiteList = Config.VehicleWhiteList['vagos_yard'],
+          garage_management = {
+               -- access to garage management
+               ['IFD87837'] = true
+          }
      },
 }
 
 function Notification(source, msg, _type)
      TriggerClientEvent('QBCore:Notify', source, msg, _type)
 end
+
+CreateThread(function()
+     for garage_name, garage in pairs(Config.Garages) do
+          for key, value in pairs(garage.WhiteList) do
+               if key ~= 'allow_all' then
+                    Config.Garages[garage_name].WhiteList[key].hash = GetHashKey(value.model:lower())
+               end
+          end
+     end
+end)

@@ -46,9 +46,18 @@ local function is_restricted_by_grades(vehicle)
 end
 
 local function check_grades(vehicle)
-     for key, value in pairs(vehicle.permissions.grades) do
-          if GetJobInfo().grade.level == tonumber(key) and value == true then
-               return true
+     local garage = GetCurrentgarageData()
+     if garage and garage.type == 'job' then
+          for key, value in pairs(vehicle.permissions.grades) do
+               if GetJobInfo().grade.level == tonumber(key) and value == true then
+                    return true
+               end
+          end
+     elseif garage and garage.type == 'gang' then
+          for key, value in pairs(vehicle.permissions.grades) do
+               if PlayerGang.grade.level == tonumber(key) and value == true then
+                    return true
+               end
           end
      end
      return false
@@ -239,7 +248,7 @@ local function get_vehicle_data(model)
           return false
      end
 
-     for key, value in ipairs(list) do
+     for key, value in pairs(list) do
           if value.hash == model then
                return value
           end
@@ -326,32 +335,32 @@ function keep_menu:vehicles_inside_category(category)
                               TriggerCallback('keep-sharedgarages:server:GET:player_job_gang', function(metadata)
                                    local detail = metadata[Config.Garages[GetCurrentgarage()].type]
                                    if detail.isboss then
-                                        -- local Input = {
-                                        --      inputs = {
-                                        --           {
-                                        --                type = 'text',
-                                        --                isRequired = true,
-                                        --                name = 'conf',
-                                        --                text = "Type Confirm (^.^)",
-                                        --                icon = 'fa-solid fa-money-bill-trend-up',
-                                        --                title = 'Confirm',
-                                        --           },
-                                        --      }
-                                        -- }
+                                        local Input = {
+                                             inputs = {
+                                                  {
+                                                       type = 'text',
+                                                       isRequired = true,
+                                                       name = 'conf',
+                                                       text = "Type Confirm (^.^)",
+                                                       icon = 'fa-solid fa-money-bill-trend-up',
+                                                       title = 'Confirm',
+                                                  },
+                                             }
+                                        }
 
-                                        -- local inputData, reason = exports['keep-input']:ShowInput(Input)
-                                        -- if reason == 'submit' then
-                                        -- if inputData.conf == 'Confirm' then
-                                        TriggerCallback('keep-sharedgarages:server:DELETE:category', function(result)
-                                             Wait(50)
-                                             keep_menu:categories()
-                                        end, category.name, GetCurrentgarage())
-                                        -- else
-                                        --      TriggerServerEvent('keep-sharedgarages:server:Notification',
-                                        --           "Ok, i won't delete it!",
-                                        --           'error')
-                                        -- end
-                                        -- end
+                                        local inputData, reason = exports['keep-input']:ShowInput(Input)
+                                        if reason == 'submit' then
+                                             if inputData.conf == 'Confirm' then
+                                                  TriggerCallback('keep-sharedgarages:server:DELETE:category', function(result)
+                                                       Wait(50)
+                                                       keep_menu:categories()
+                                                  end, category.name, GetCurrentgarage())
+                                             else
+                                                  TriggerServerEvent('keep-sharedgarages:server:Notification',
+                                                       "Ok, i won't delete it!",
+                                                       'error')
+                                             end
+                                        end
                                    else
                                         TriggerServerEvent('keep-sharedgarages:server:Notification', 'You are not boss!', 'error')
                                         return
@@ -793,7 +802,7 @@ AddEventHandler('keep-sharedgarages:client:keep_put_back_to_garage', function(e)
                TriggerEvent('keep-sharedgarages:client:delete_if_exist', VehicleProperties.VehicleProperties.plate, veh)
                return
           end
-          TriggerServerEvent('keep-sharedgarages:server:Notification', "This garage wont't accept this class of vehicle!", 'error')
+          TriggerServerEvent('keep-sharedgarages:server:Notification', "This garage doesn't accept this vehicle!", 'error')
      end, VehicleProperties)
 end)
 

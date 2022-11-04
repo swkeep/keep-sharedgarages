@@ -106,9 +106,8 @@ end)
 
 local function cidWhiteListed(Player, garage)
      if not Config.Garages[garage] then return false end
-     if not Config.Garages[garage].garage_management then return false end
+     if not Config.Garages[garage].garage_management then print('garage : ' .. garage .. "Doesn't have garage_management") return false end
      local citizenid = Player.PlayerData.citizenid
-
      if Config.Garages[garage].garage_management[citizenid] then
           if Config.Garages[garage].garage_management[citizenid] == true then
                return true
@@ -209,8 +208,8 @@ CreateCallback('keep-sharedgarages:server:save_vehicle', function(source, cb, da
      data.VehicleProperties.plate = data.plate
 
      local function get_category_id(Callback)
-          if not data.category.name then
-               Notification(source, 'Category name?!', 'error')
+          if not data.category or not data.category.name then
+               Notification(source, 'Did you forget category name?!', 'error')
                cb(false)
                return
           end
@@ -392,12 +391,12 @@ function GeneratePlate()
 end
 
 RegisterNetEvent('keep-sharedgarages:server:saveInsideGarage', function(current_garage)
+     local src = source
      local function save(_type, _grades, random_plate)
           TriggerClientEvent('keep-sharedgarages:client:get_current_garage', src, 'keep-sharedgarages:server:saveInsideGarage_after', { _type, _grades, random_plate })
      end
 
      -- auth
-     local src = source
      local Player = QBCore.Functions.GetPlayer(src)
      if not cidWhiteListed(Player, current_garage) then
           Notification(src, 'You are not whitelisted', 'error')

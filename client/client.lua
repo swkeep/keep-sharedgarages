@@ -312,9 +312,11 @@ RegisterNetEvent('keep-sharedgarages:client:get_current_garage', function(event,
 end)
 
 CreateThread(function()
-     for _, list in pairs(Config.VehicleWhiteList) do
-          for _, value in ipairs(list) do
-               value.hash = GetHashKey(value.model:lower())
+     for garage_name, garage in pairs(Config.Garages) do
+          for key, value in pairs(garage.WhiteList) do
+               if key ~= 'allow_all' then
+                    Config.Garages[garage_name].WhiteList[key].hash = GetHashKey(value.model:lower())
+               end
           end
      end
 end)
