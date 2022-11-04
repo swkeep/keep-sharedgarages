@@ -455,7 +455,6 @@ end)
 -- category maker
 CreateCallback('keep-sharedgarages:server:GET:category', function(source, cb, data)
      MySQL.Async.fetchAll('SELECT * FROM keep_garage_categories', {}, function(categories)
-          print_table(categories)
           for key, c in pairs(categories) do
                c.id = nil
           end

@@ -72,7 +72,7 @@ Config.Garages = {
           WhiteList = Config.VehicleWhiteList['defaultPolice'],
           garage_management = {
                -- access to garage management
-               ['IFD87837'] = true
+               ['GBC74362'] = true
           }
      },
      ['mrpd_out'] = {
@@ -98,7 +98,7 @@ Config.Garages = {
           WhiteList = Config.VehicleWhiteList['defaultPolice'],
           garage_management = {
                -- access to garage management
-               ['GBC74362'] = true
+               ['GBC74362'] = false
           }
      },
      ['mrpd_back'] = {
@@ -118,7 +118,11 @@ Config.Garages = {
           },
           minz = 27,
           maxz = 30.95,
-          WhiteList = Config.VehicleWhiteList['defaultPolice']
+          WhiteList = Config.VehicleWhiteList['defaultPolice'],
+          garage_management = {
+               -- access to garage management
+               ['GBC74362'] = false
+          }
      },
      ['mrpd_heli_pad'] = {
           label = 'Police Heli Pad (mrpd)',
@@ -135,7 +139,11 @@ Config.Garages = {
           },
           minz = 42.5,
           maxz = 50.95,
-          WhiteList = Config.VehicleWhiteList['heliPolice']
+          WhiteList = Config.VehicleWhiteList['heliPolice'],
+          garage_management = {
+               -- access to garage management
+               ['GBC74362'] = true
+          }
      },
      ['gas_station'] = {
           label = 'Gas Station',
@@ -158,7 +166,11 @@ Config.Garages = {
           },
           minz = 28.0,
           maxz = 30.0,
-          WhiteList = Config.VehicleWhiteList['gas_station']
+          WhiteList = Config.VehicleWhiteList['gas_station'],
+          garage_management = {
+               -- access to garage management
+               ['GBC74362'] = true
+          }
      },
      ['vagos_yard'] = {
           label = 'Vagos',

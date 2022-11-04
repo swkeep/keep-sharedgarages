@@ -236,15 +236,39 @@ local function InitGarageZone()
                     currentgarage = k
                     if CanPlayerUseGarage() then
                          inGarageStation = true
-                         radialmenu = exports['qb-radialmenu']:AddOption({
-                              id = 'keep_put_back_to_garage',
-                              title = 'Park (Job)',
-                              icon = 'car',
-                              type = 'client',
-                              event = 'keep-sharedgarages:client:keep_put_back_to_garage',
-                              shouldClose = true
-                         })
-                         exports['qb-core']:DrawText('Job Parking')
+                         Wait(50)
+                         local garage = GetCurrentgarageData()
+                         if garage and garage.type == 'job' then
+                              if radialmenu then
+                                   exports['qb-radialmenu']:RemoveOption(radialmenu)
+                                   radialmenu = nil
+                                   Wait(50)
+                              end
+                              radialmenu = exports['qb-radialmenu']:AddOption({
+                                   id = 'keep_put_back_to_garage',
+                                   title = 'Parking (Job)',
+                                   icon = 'car',
+                                   type = 'client',
+                                   event = 'keep-sharedgarages:client:keep_put_back_to_garage',
+                                   shouldClose = true
+                              })
+                              exports['qb-core']:DrawText('Job Parking')
+                         elseif garage and garage.type == 'gang' then
+                              if radialmenu then
+                                   exports['qb-radialmenu']:RemoveOption(radialmenu)
+                                   radialmenu = nil
+                                   Wait(50)
+                              end
+                              radialmenu = exports['qb-radialmenu']:AddOption({
+                                   id = 'keep_put_back_to_garage',
+                                   title = 'Parking (Gang)',
+                                   icon = 'car',
+                                   type = 'client',
+                                   event = 'keep-sharedgarages:client:keep_put_back_to_garage',
+                                   shouldClose = true
+                              })
+                              exports['qb-core']:DrawText('Gang Parking')
+                         end
                     end
                else
                     currentgarage = ''

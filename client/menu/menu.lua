@@ -84,7 +84,6 @@ local function cidWhiteListed(garage)
      if not Config.Garages[garage] then return false end
      if not Config.Garages[garage].garage_management then return false end
      local citizenid = QBCore.Functions.GetPlayerData().citizenid
-
      if Config.Garages[garage].garage_management[citizenid] then
           if Config.Garages[garage].garage_management[citizenid] == true then
                return true
@@ -161,71 +160,66 @@ function keep_menu:categories()
                               local detail = metadata[Config.Garages[GetCurrentgarage()].type]
                               local grades = metadata.extra[Config.Garages[GetCurrentgarage()].type]
 
-                              if detail.isboss then
-                                   local Input = {
-                                        inputs = {
-                                             {
-                                                  type = 'text',
-                                                  isRequired = true,
-                                                  name = 'category',
-                                                  text = "name of new category",
-                                                  icon = 'fa-solid fa-money-bill-trend-up',
-                                                  title = 'Category Name',
-                                             },
-                                             {
-                                                  type = 'text',
-                                                  name = 'icon',
-                                                  icon = 'fa-solid fa-money-bill-trend-up',
-                                                  title = 'font icon',
-                                                  text = 'fa-solid fa-car-side',
-                                                  force_value = 'fa-solid fa-car-side'
-                                             },
-                                             {
-                                                  type = 'text',
-                                                  name = 'citizenids',
-                                                  icon = 'fa-solid fa-money-bill-trend-up',
-                                                  title = 'CitizenID Whitelist',
-                                                  text = 'PZT37891,PZT37891,....'
-                                             },
-                                        }
+                              local Input = {
+                                   inputs = {
+                                        {
+                                             type = 'text',
+                                             isRequired = true,
+                                             name = 'category',
+                                             text = "name of new category",
+                                             icon = 'fa-solid fa-money-bill-trend-up',
+                                             title = 'Category Name',
+                                        },
+                                        {
+                                             type = 'text',
+                                             name = 'icon',
+                                             icon = 'fa-solid fa-money-bill-trend-up',
+                                             title = 'font icon',
+                                             text = 'fa-solid fa-car-side',
+                                             force_value = 'fa-solid fa-car-side'
+                                        },
+                                        {
+                                             type = 'text',
+                                             name = 'citizenids',
+                                             icon = 'fa-solid fa-money-bill-trend-up',
+                                             title = 'CitizenID Whitelist',
+                                             text = 'PZT37891,PZT37891,....'
+                                        },
                                    }
+                              }
 
-                                   local index = #Input.inputs + 1
-                                   Input.inputs[index] = {
-                                        isRequired = true,
-                                        title = 'Allowed Grades',
-                                        name = "grades", -- name of the input should be unique
-                                        type = "checkbox",
-                                        options = {},
+                              local index = #Input.inputs + 1
+                              Input.inputs[index] = {
+                                   isRequired = true,
+                                   title = 'Allowed Grades',
+                                   name = "grades", -- name of the input should be unique
+                                   type = "checkbox",
+                                   options = {},
+                              }
+
+                              -- sort grades
+                              local temp_grages = {}
+                              for key, value in pairs(grades) do
+                                   temp_grages[tonumber(key + 1)] = value
+                              end
+
+                              for key, value in pairs(temp_grages) do
+                                   Input.inputs[index].options[#Input.inputs[index].options + 1] = {
+                                        value = key - 1,
+                                        text = value.name .. ' (' .. key .. ')'
                                    }
+                              end
 
-                                   -- sort grades
-                                   local temp_grages = {}
-                                   for key, value in pairs(grades) do
-                                        temp_grages[tonumber(key + 1)] = value
+                              local inputData, reason = exports['keep-input']:ShowInput(Input)
+                              if reason == 'submit' then
+                                   if inputData.citizenids then
+                                        inputData.citizenids = split(inputData.citizenids, ",")
                                    end
-
-                                   for key, value in pairs(temp_grages) do
-                                        Input.inputs[index].options[#Input.inputs[index].options + 1] = {
-                                             value = key - 1,
-                                             text = value.name .. ' (' .. key .. ')'
-                                        }
-                                   end
-
-                                   local inputData, reason = exports['keep-input']:ShowInput(Input)
-                                   if reason == 'submit' then
-                                        if inputData.citizenids then
-                                             inputData.citizenids = split(inputData.citizenids, ",")
-                                        end
-                                        inputData.type_name = Config.Garages[GetCurrentgarage()].type
-                                        TriggerCallback('keep-sharedgarages:server:POST:create_category', function(result)
-                                             Wait(50)
-                                             keep_menu:categories()
-                                        end, inputData, GetCurrentgarage())
-                                   end
-                              else
-                                   TriggerServerEvent('keep-sharedgarages:server:Notification', 'You are not boss!', 'error')
-                                   return
+                                   inputData.type_name = Config.Garages[GetCurrentgarage()].type
+                                   TriggerCallback('keep-sharedgarages:server:POST:create_category', function(result)
+                                        Wait(50)
+                                        keep_menu:categories()
+                                   end, inputData, GetCurrentgarage())
                               end
                          end)
                     end
@@ -299,30 +293,25 @@ function keep_menu:vehicles_inside_category(category)
                          action = function()
                               TriggerCallback('keep-sharedgarages:server:GET:player_job_gang', function(metadata)
                                    local detail = metadata[Config.Garages[GetCurrentgarage()].type]
-                                   if detail.isboss then
-                                        local Input = {
-                                             inputs = {
-                                                  {
-                                                       type = 'text',
-                                                       isRequired = true,
-                                                       name = 'name',
-                                                       text = "Type new name here",
-                                                       icon = 'fa-solid fa-money-bill-trend-up',
-                                                       title = 'Name',
-                                                  },
-                                             }
+                                   local Input = {
+                                        inputs = {
+                                             {
+                                                  type = 'text',
+                                                  isRequired = true,
+                                                  name = 'name',
+                                                  text = "Type new name here",
+                                                  icon = 'fa-solid fa-money-bill-trend-up',
+                                                  title = 'Name',
+                                             },
                                         }
+                                   }
 
-                                        local inputData, reason = exports['keep-input']:ShowInput(Input)
-                                        if reason == 'submit' then
-                                             TriggerCallback('keep-sharedgarages:server:POST:edit_category', function(result)
-                                                  Wait(50)
-                                                  keep_menu:categories()
-                                             end, 'name', inputData.name, category.name, GetCurrentgarage())
-                                        end
-                                   else
-                                        TriggerServerEvent('keep-sharedgarages:server:Notification', 'You are not boss!', 'error')
-                                        return
+                                   local inputData, reason = exports['keep-input']:ShowInput(Input)
+                                   if reason == 'submit' then
+                                        TriggerCallback('keep-sharedgarages:server:POST:edit_category', function(result)
+                                             Wait(50)
+                                             keep_menu:categories()
+                                        end, 'name', inputData.name, category.name, GetCurrentgarage())
                                    end
                               end)
                          end
@@ -334,36 +323,29 @@ function keep_menu:vehicles_inside_category(category)
                          action = function()
                               TriggerCallback('keep-sharedgarages:server:GET:player_job_gang', function(metadata)
                                    local detail = metadata[Config.Garages[GetCurrentgarage()].type]
-                                   if detail.isboss then
-                                        local Input = {
-                                             inputs = {
-                                                  {
-                                                       type = 'text',
-                                                       isRequired = true,
-                                                       name = 'conf',
-                                                       text = "Type Confirm (^.^)",
-                                                       icon = 'fa-solid fa-money-bill-trend-up',
-                                                       title = 'Confirm',
-                                                  },
-                                             }
+                                   local Input = {
+                                        inputs = {
+                                             {
+                                                  type = 'text',
+                                                  isRequired = true,
+                                                  name = 'conf',
+                                                  text = "Type Confirm (^.^)",
+                                                  icon = 'fa-solid fa-money-bill-trend-up',
+                                                  title = 'Confirm',
+                                             },
                                         }
+                                   }
 
-                                        local inputData, reason = exports['keep-input']:ShowInput(Input)
-                                        if reason == 'submit' then
-                                             if inputData.conf == 'Confirm' then
-                                                  TriggerCallback('keep-sharedgarages:server:DELETE:category', function(result)
-                                                       Wait(50)
-                                                       keep_menu:categories()
-                                                  end, category.name, GetCurrentgarage())
-                                             else
-                                                  TriggerServerEvent('keep-sharedgarages:server:Notification',
-                                                       "Ok, i won't delete it!",
-                                                       'error')
-                                             end
+                                   local inputData, reason = exports['keep-input']:ShowInput(Input)
+                                   if reason == 'submit' then
+                                        if inputData.conf == 'Confirm' then
+                                             TriggerCallback('keep-sharedgarages:server:DELETE:category', function(result)
+                                                  Wait(50)
+                                                  keep_menu:categories()
+                                             end, category.name, GetCurrentgarage())
+                                        else
+                                             TriggerServerEvent('keep-sharedgarages:server:Notification', "Ok, i won't delete it!", 'error')
                                         end
-                                   else
-                                        TriggerServerEvent('keep-sharedgarages:server:Notification', 'You are not boss!', 'error')
-                                        return
                                    end
                               end)
                          end
