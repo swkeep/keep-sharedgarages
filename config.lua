@@ -1,40 +1,41 @@
 Config = Config or {}
 
-Config.fuel_script = 'LegacyFuel'
-
-Config.AllowledList = {
-     'LQB94352'
-}
+Config.fuel_script = 'LegacyFuel' --LegacyFuel
 
 Config.MagicTouch = false
 
 Config.VehicleWhiteList = {
      ['defaultPolice'] = {
-          { label = 'Sheriff', spawncode = 'Sheriff2', icon = 'fa-solid fa-car-side' },
-          { label = 'Sheriff', spawncode = 'Sheriff', icon = 'fa-solid fa-car-side' },
-          { label = 'Riot', spawncode = 'Riot', icon = 'fa-solid fa-truck' },
-          { label = 'Policeb', spawncode = 'Policeb', icon = 'fa-solid fa-car-side' },
-          { label = 'PBus', spawncode = 'PBus', icon = 'fa-solid fa-car-side' },
-          { label = 'Police', spawncode = 'Police', icon = 'fa-solid fa-car-side' },
-          { label = 'Police2', spawncode = 'Police2', icon = 'fa-solid fa-car-side' },
-          { label = 'Police3', spawncode = 'Police3', icon = 'fa-solid fa-car-side' },
-          { label = 'Police4', spawncode = 'Police4', icon = 'fa-solid fa-car-side' },
+          { label = 'Sheriff', model = 'Sheriff2' },
+          { label = 'Sheriff', model = 'Sheriff' },
+          { label = 'Riot', model = 'Riot' },
+          { label = 'Policeb', model = 'Policeb' },
+          { label = 'PBus', model = 'PBus' },
+          { label = 'Police', model = 'Police' },
+          { label = 'Police2', model = 'Police2' },
+          { label = 'Police3', model = 'Police3' },
+          { label = 'Police4', model = 'Police4' },
      },
      ['heliPolice'] = {
-          { label = 'Police Maverick', spawncode = 'Polmav', icon = 'fa-solid fa-helicopter' }
+          { label = 'Police Maverick', model = 'Polmav' }
      },
      ['gas_station'] = {
-          { label = 'Adder', spawncode = 'adder', icon = 'fa-solid fa-taxi' },
-          { label = 'Glendale', spawncode = 'glendale', icon = 'fa-solid fa-car-side' },
-     }
+          { label = 'Adder', model = 'adder' },
+          { label = 'Glendale', model = 'glendale' },
+     },
+     ['vagos_yard'] = {
+          -- by using qb-core/shared/vehicles.lua
+          allow_all = true,
+          { label = 'Sheriff', model = 'Sheriff2' }, -- #TODO add support for additions
+     },
 }
 
-Config.JobGarages = {
+Config.Garages = {
      --Job Garage:
      ['mrpd'] = {
           label = 'Police Garage (mrpd)',
           type = 'job',
-          job = { 'police' },
+          job = { 'police' }, -- accpets just one job
           onDuty = true,
           spawnPoint = {
                vector4(445.92, -996.92, 24.96, 270.5),
@@ -68,7 +69,11 @@ Config.JobGarages = {
           },
           minz = 24.66,
           maxz = 28.66,
-          WhiteList = Config.VehicleWhiteList['defaultPolice']
+          WhiteList = Config.VehicleWhiteList['defaultPolice'],
+          garage_management = {
+               -- access to garage management
+               ['IFD87837'] = true
+          }
      },
      ['mrpd_out'] = {
           label = 'Police Garage (mrpd)',
@@ -149,6 +154,25 @@ Config.JobGarages = {
           minz = 28.0,
           maxz = 30.0,
           WhiteList = Config.VehicleWhiteList['gas_station']
+     },
+     ['vagos_yard'] = {
+          label = 'Vagos',
+          type = 'gang',
+          gang = { 'vagos' }, -- accpets just one gang
+          spawnPoint = {
+               vector4(306.6, -2022.9, 19.92, 141.33),
+               vector4(308.74, -2024.99, 19.99, 141.96),
+               vector4(318.66, -2020.07, 20.3, 322.45)
+          },
+          zones = {
+               vector2(301.20172119141, -2023.0167236328),
+               vector2(311.47695922852, -2008.5593261719),
+               vector2(344.26721191406, -2036.0698242188),
+               vector2(332.54577636719, -2050.0180664062)
+          },
+          minz = 20.0,
+          maxz = 23.0,
+          WhiteList = Config.VehicleWhiteList['vagos_yard']
      },
 }
 

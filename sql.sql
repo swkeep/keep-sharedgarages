@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS `keep_garage` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_keep_garage_categories` int(11) NOT NULL,
   `citizenid` varchar(50) DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   `model` varchar(50) DEFAULT NULL,
@@ -27,4 +28,11 @@ CREATE TABLE IF NOT EXISTS `keep_garage_logs` (
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `plate` (`plate`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `keep_garage_categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;

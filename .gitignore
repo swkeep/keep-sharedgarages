@@ -1,1 +1,3 @@
-/test
+/.vscode
+/dev-tool
+/dev-config.lua

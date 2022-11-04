@@ -13,20 +13,9 @@ local GarageLocation = {}
 local inGarageStation = false
 local currentgarage
 PlayerJob = {}
+PlayerGang = {}
 local onDuty = false
 local radialmenu = nil
-
-local function isWhitelisted(_currentgarage, model)
-     if type(model) == "number" then model = tostring(model) end
-     local list = Config.JobGarages[_currentgarage].WhiteList
-     if not list then return end
-     for key, value in pairs(list) do
-          if tonumber(value.hash) == tonumber(model) then
-               return true, value
-          end
-     end
-     return false
-end
 
 function IsOnDuty()
      return onDuty
@@ -45,7 +34,7 @@ function GetCurrentgarage()
 end
 
 function GetCurrentgarageData()
-     return Config.JobGarages[currentgarage]
+     return Config.Garages[currentgarage]
 end
 
 function GetInGarageStation()
@@ -81,67 +70,78 @@ local function check_player_duty()
      end
 end
 
+local function does_player_same_gang_as_garage()
+     local current_garage = GetCurrentgarageData()
+     local name = PlayerGang.name
+
+     for key, value in pairs(current_garage.gang) do
+          if value == name then
+               return true
+          end
+     end
+     return false
+end
+
 function CanPlayerUseGarage()
-     if GetCurrentgarageData().type == 'job' then
+     local garage = GetCurrentgarageData()
+     if garage and garage.type == 'job' then
           -- is a job garage
           if does_player_same_job_as_garage() then
                return check_player_duty()
           else
                return false
           end
+     elseif garage and garage.type == 'gang' then
+          return does_player_same_gang_as_garage()
      else
           return true
      end
 end
 
-local function saveVehicle(d, veh)
-     if not veh then return end
-     local VehicleProperties = QBCore.Functions.GetVehicleProperties(veh)
-     local state, info = isWhitelisted(currentgarage, VehicleProperties.model)
-     if not state then
-          TriggerServerEvent('keep-jobgarages:server:Notification', 'Could not store this vehicle (not whitelisted)',
-               'error')
-          return
-     end
-     local data = {
-          VehicleProperties = VehicleProperties,
-          plate = d.vehicle_plate,
-          name = d.vehicle_name,
-          grades = d.grades,
-          cids = d.citizenids,
-          job = d.job_name,
-          hash = GetHashKey(veh),
-          garage = currentgarage,
-          info = info
-     }
-
-     TriggerCallback('keep-jobgarages:server:save_vehicle', function(result)
-          local plyPed = PlayerPedId()
-          if IsPedInAnyVehicle(plyPed, false) then
-               TaskLeaveVehicle(plyPed, veh, 0)
-               while IsPedInAnyVehicle(plyPed, false) do
-                    Wait(100)
-               end
-               Wait(750)
-               DeleteEntity(veh)
-          end
-     end, data)
-end
-
 -- Events
+RegisterNetEvent('keep-sharedgarages:client:newVehicleSetup', function(job, grades, categories, random_plate)
+     local function saveVehicle(d, veh)
+          if not veh then return end
+          local VehicleProperties = QBCore.Functions.GetVehicleProperties(veh)
+          local data = {
+               VehicleProperties = VehicleProperties,
+               plate = d.vehicle_plate,
+               name = d.vehicle_name,
+               grades = d.grades,
+               cids = d.citizenids,
+               job = d.job_name,
+               category = d.category,
+               model = GetEntityModel(veh),
+               hash = GetHashKey(veh),
+               garage = currentgarage
+          }
 
-RegisterNetEvent('keep-jobgarages:client:newVehicleSetup', function(job, grades)
+          TriggerCallback('keep-sharedgarages:server:save_vehicle', function(res)
+               if not res then return end
+               local plyPed = PlayerPedId()
+               if IsPedInAnyVehicle(plyPed, false) then
+                    TaskLeaveVehicle(plyPed, veh, 0)
+                    while IsPedInAnyVehicle(plyPed, false) do
+                         Wait(100)
+                    end
+                    Wait(750)
+                    DeleteEntity(veh)
+               end
+          end, data)
+     end
+
      local plyPed = PlayerPedId()
      if not IsPedInAnyVehicle(plyPed, false) then
-          TriggerServerEvent('keep-jobgarages:server:Notification', 'Your should be inside a vehicle to use this command'
-               , 'error')
+          TriggerServerEvent('keep-sharedgarages:server:Notification', 'You should be inside a vehicle to use this command', 'error')
           return
      end
+
      local veh = GetVehiclePedIsIn(plyPed, false)
      if not inGarageStation then
-          TriggerServerEvent('keep-jobgarages:server:Notification', 'You must be in garage zone!', 'error')
+          TriggerServerEvent('keep-sharedgarages:server:Notification', 'You must be in garage zone!', 'error')
           return
      end
+
      local Input = {
           inputs = {
                {
@@ -158,16 +158,7 @@ RegisterNetEvent('keep-jobgarages:client:newVehicleSetup', function(job, grades)
                     name = 'vehicle_plate',
                     icon = 'fa-solid fa-money-bill-trend-up',
                     title = 'Vehicle Plate',
-                    force_value = RandomID(8):upper(),
-                    disabled = true
-               },
-               {
-                    type = 'text',
-                    isRequired = true,
-                    name = 'job_name',
-                    icon = 'fa-solid fa-money-bill-trend-up',
-                    title = 'Job Name',
-                    force_value = job,
+                    force_value = random_plate,
                     disabled = true
                },
                {
@@ -180,28 +171,60 @@ RegisterNetEvent('keep-jobgarages:client:newVehicleSetup', function(job, grades)
           }
      }
 
-     local index = #Input.inputs + 1
-     Input.inputs[index] = {
-          isRequired = true,
-          title = 'Allowed Grades',
-          name = "grades", -- name of the input should be unique
-          type = "checkbox",
-          options = {},
-     }
+     local function create_grades()
+          local index = #Input.inputs + 1
+          Input.inputs[index] = {
+               isRequired = true,
+               title = 'Allowed Grades',
+               name = "grades", -- name of the input should be unique
+               type = "checkbox",
+               options = {},
+          }
 
-     for key, value in pairs(grades) do
-          Input.inputs[index].options[#Input.inputs[index].options + 1] = { value = key,
-               text = value.name .. ' (' .. key .. ')' }
+          -- sort grades
+          local temp_grages = {}
+          for key, value in pairs(grades) do
+               temp_grages[tonumber(key + 1)] = value
+          end
+
+          for key, value in pairs(temp_grages) do
+               Input.inputs[index].options[#Input.inputs[index].options + 1] = {
+                    value = key - 1,
+                    text = value.name .. ' (' .. key .. ')'
+               }
+          end
      end
+
+     local function create_categories()
+          local index = #Input.inputs + 1
+          Input.inputs[index] = {
+               isRequired = true,
+               title = 'Categories',
+               name = "category", -- name of the input should be unique
+               type = "radio",
+               options = {},
+          }
+
+          for key, value in pairs(categories) do
+               Input.inputs[index].options[#Input.inputs[index].options + 1] = { value = key,
+                    text = value.name .. ' (' .. key .. ')' }
+          end
+     end
+
+     create_grades()
+     create_categories()
 
      local inputData, reason = exports['keep-input']:ShowInput(Input)
      if reason == 'submit' then
+          inputData.job_name = job
+          inputData.category = categories[tonumber(inputData.category)]
+          inputData.vehicle_plate = random_plate
           saveVehicle(inputData, veh)
      end
 end)
 
 local function InitGarageZone()
-     for k, v in pairs(Config.JobGarages) do
+     for k, v in pairs(Config.Garages) do
           GarageLocation[k] = PolyZone:Create(v.zones, {
                name = 'GarageStation ' .. k,
                minZ = v.minz,
@@ -218,7 +241,7 @@ local function InitGarageZone()
                               title = 'Park (Job)',
                               icon = 'car',
                               type = 'client',
-                              event = 'keep-jobgarages:client:keep_put_back_to_garage',
+                              event = 'keep-sharedgarages:client:keep_put_back_to_garage',
                               shouldClose = true
                          })
                          exports['qb-core']:DrawText('Job Parking')
@@ -239,6 +262,7 @@ RegisterNetEvent('onResourceStart', function(resourceName)
      if resourceName ~= GetCurrentResourceName() then return end
      QBCore.Functions.GetPlayerData(function(PlayerData)
           PlayerJob = PlayerData.job
+          PlayerGang = PlayerData.gang
           onDuty = PlayerData.job.onduty
           InitGarageZone()
      end)
@@ -246,12 +270,15 @@ end)
 
 RegisterNetEvent('onResourceStop', function(resourceName)
      if resourceName ~= GetCurrentResourceName() then return end
-     exports['qb-radialmenu']:RemoveOption(radialmenu)
+     if radialmenu then
+          exports['qb-radialmenu']:RemoveOption(radialmenu)
+     end
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
      QBCore.Functions.GetPlayerData(function(PlayerData)
           PlayerJob = PlayerData.job
+          PlayerGang = PlayerData.gang
           onDuty = PlayerData.job.onduty
           InitGarageZone()
      end)
@@ -262,14 +289,32 @@ RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
      onDuty = PlayerJob.onduty
 end)
 
+RegisterNetEvent('QBCore:Client:OnGangUpdate', function(GangInfo)
+     PlayerGang = GangInfo
+end)
+
 RegisterNetEvent('QBCore:Client:SetDuty', function(duty)
      onDuty = duty
 end)
 
 CreateThread(function()
      for _, cat in pairs(Config.VehicleWhiteList) do
-          for key, vehicle in pairs(cat) do
-               vehicle.hash = GetHashKey(vehicle.spawncode)
+          if not cat.allow_all then
+               for key, vehicle in pairs(cat) do
+                    vehicle.hash = GetHashKey(vehicle.spawncode)
+               end
+          end
+     end
+end)
+
+RegisterNetEvent('keep-sharedgarages:client:get_current_garage', function(event, data)
+     TriggerServerEvent(event, GetCurrentgarage(), data)
+end)
+
+CreateThread(function()
+     for _, list in pairs(Config.VehicleWhiteList) do
+          for _, value in ipairs(list) do
+               value.hash = GetHashKey(value.model:lower())
           end
      end
 end)

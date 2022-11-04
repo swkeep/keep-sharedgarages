@@ -130,7 +130,7 @@ function GetNearSpawnPoint(inGarageStation, currentgarage) -- Get nearest spawn 
      local near = nil
      local distance = 50
      if inGarageStation and currentgarage ~= nil then
-          for k, v in pairs(Config.JobGarages[currentgarage].spawnPoint) do
+          for k, v in pairs(Config.Garages[currentgarage].spawnPoint) do
                if IsSpawnPointClear(vector3(v.x, v.y, v.z), 2.5) then
                     local ped = PlayerPedId()
                     local pos = GetEntityCoords(ped)
