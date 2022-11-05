@@ -33,6 +33,11 @@ CREATE TABLE IF NOT EXISTS `keep_garage_logs` (
 CREATE TABLE IF NOT EXISTS `keep_garage_categories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
+  `citizenid` TEXT DEFAULT NULL,
+  `icon` varchar(50) DEFAULT NULL,
+  `garage` varchar(50) DEFAULT NULL,
+  `type` varchar(50) DEFAULT NULL,
+  `grades` TEXT DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
