@@ -206,7 +206,7 @@ function keep_menu:categories()
                               for key, value in pairs(temp_grages) do
                                    Input.inputs[index].options[#Input.inputs[index].options + 1] = {
                                         value = key - 1,
-                                        text = value.name .. ' (' .. key .. ')'
+                                        text = value.name
                                    }
                               end
 
