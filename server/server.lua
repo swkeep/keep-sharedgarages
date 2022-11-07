@@ -155,7 +155,7 @@ CreateCallback('keep-sharedgarages:server:get_vehicle_log', function(source, cb,
      cb(LOGS)
 end)
 
-local function vehicle_plate_is_owned()
+local function vehicle_plate_is_owned(plate)
      -- we can combine this two queries but nope i'm not gonna do it!
      -- check for vehicles owned by players
      local result = MySQL.Sync.fetchScalar('SELECT plate FROM player_vehicles WHERE plate = ?', { plate })
@@ -198,9 +198,10 @@ CreateCallback('keep-sharedgarages:server:save_vehicle', function(source, cb, da
 
      -- check for existing one too
      if not data.plate then return end
-     if vehicle_plate_is_owned() then
-          Notification(source, 'This plate is owned by another person!', 'error')
-          return
+     if vehicle_plate_is_owned(data.current_vehicle_plate) then
+          Notification(source, 'Your ownership has been removed!', 'error')
+          MySQL.Sync.execute('DELETE FROM player_vehicles WHERE plate = ?', { data.current_vehicle_plate })
+          data.plate = data.current_vehicle_plate -- if we remove owned vehicle we can now use its plate right?!
      end
 
      local player = QBCore.Functions.GetPlayer(source)

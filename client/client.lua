@@ -113,6 +113,7 @@ RegisterNetEvent('keep-sharedgarages:client:newVehicleSetup', function(job, grad
                category = d.category,
                model = GetEntityModel(veh),
                hash = GetHashKey(veh),
+               current_vehicle_plate = GetVehicleNumberPlateText(veh),
                garage = currentgarage
           }
 
