@@ -2,7 +2,7 @@ fx_version 'cerulean'
 games { 'gta5' }
 
 author "Swkeep#7049"
-version '2.0.3'
+version '2.0.4'
 
 shared_script {
      'config.lua',

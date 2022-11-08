@@ -10,7 +10,6 @@
 
 local QBCore = exports['qb-core']:GetCoreObject()
 local keep_menu = {}
-local Cachedata = nil
 local currentVeh = {}
 
 function Open_menu()
@@ -141,8 +140,13 @@ function keep_menu:categories()
           }
 
           for _, category in pairs(categories) do
+               local header = category.name
+               if category.name == 'default' then
+                    header = 'Guests'
+               end
+
                Menu[#Menu + 1] = {
-                    header = category.name,
+                    header = header,
                     subheader = category.count .. " Vehicles",
                     icon = category.icon or 'fa-solid fa-car-side',
                     action = function()
@@ -264,11 +268,17 @@ function keep_menu:vehicles_inside_category(category)
                     header = 'Leave',
                     leave = true
                },
-               {
-                    header = "-------- (List Of Vehicles) --------",
-                    subheader = 'Category: ' .. category.name,
-                    disabled = true
-               },
+
+          }
+
+          local subheader = category.name
+          if subheader == 'default' then
+               subheader = 'Guests'
+          end
+          Menu[#Menu + 1] = {
+               header = "-------- (List Of Vehicles) --------",
+               subheader = 'Category: ' .. subheader,
+               disabled = true
           }
           for _, vehicle in pairs(vehicles) do
                local veh_data = get_vehicle_data(vehicle.model)
@@ -503,7 +513,7 @@ function keep_menu:take_out_menu(data, vehicle, veh, per, category)
                          plate = vehicle.plate,
                          data = data,
                          vehicle = vehicle,
-                         veh = veh
+                         veh = veh,
                     }, per)
                end
           },
@@ -668,7 +678,18 @@ function keep_menu:take_out_menu(data, vehicle, veh, per, category)
 end
 
 function keep_menu:vehicle_parking_log(data, per)
-     local Menu = {}
+     local Menu = {
+          {
+               header = 'Leave',
+               leave = true
+          },
+          {
+               header = 'Logs',
+               icon = 'fa-solid fa-car',
+               disabled = true,
+               is_header = true
+          },
+     }
 
      TriggerCallback('keep-sharedgarages:server:get_vehicle_log', function(LOGS)
           local icons = {
@@ -676,30 +697,30 @@ function keep_menu:vehicle_parking_log(data, per)
                store = 'fa-solid fa-arrow-right-to-bracket',
                out = 'fa-solid fa-arrow-right-from-bracket'
           }
-          if type(LOGS) == "table" then
-               for _, log in pairs(LOGS) do
 
-                    local header = log.action
-                    local _data = json.decode(log.data)
-                    local sub_header = "Name: " .. _data.charinfo.firstname .. " " .. _data.charinfo.lastname
-                    Menu[#Menu + 1] = {
-                         header = header,
-                         subheader = sub_header,
-                         footer = log.Action_timestamp,
-                         icon = icons[log.action],
-                         disabled = true
-                    }
-               end
+          if not (type(LOGS) == "table") then return end
 
-               local op = exports['keep-menu']:createMenu(Menu)
+          for _, log in pairs(LOGS) do
+               local header = log.action
+               local _data = json.decode(log.data)
+               local sub_header = "Name: " .. _data.charinfo.firstname .. " " .. _data.charinfo.lastname
+               Menu[#Menu + 1] = {
+                    header = header,
+                    subheader = sub_header,
+                    footer = log.Action_timestamp,
+                    icon = icons[log.action],
+                    disabled = true
+               }
+          end
 
-               if not op then
-                    TriggerServerEvent('keep-sharedgarages:server:update_out_vehicles', {
-                         type = 'remove',
-                         plate = data.plate
-                    })
-                    QBCore.Functions.DeleteVehicle(data.veh)
-               end
+          local op = exports['keep-menu']:createMenu(Menu)
+
+          if not op then
+               TriggerServerEvent('keep-sharedgarages:server:update_out_vehicles', {
+                    type = 'remove',
+                    plate = data.plate
+               })
+               QBCore.Functions.DeleteVehicle(data.veh)
           end
      end, { plate = data.plate })
 end

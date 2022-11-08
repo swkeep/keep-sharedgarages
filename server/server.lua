@@ -337,9 +337,9 @@ RegisterNetEvent("keep-sharedgarages:server:update_state", function(plate, prope
                MySQL.Async.execute(s, {
                     1,
                     properties.currentgarage,
-                    math.floor(properties.VehicleProperties.fuelLevel),
-                    math.floor(properties.VehicleProperties.engineHealth),
-                    math.floor(properties.VehicleProperties.bodyHealth),
+                    math.floor(properties.VehicleProperties.fuelLevel or 0),
+                    math.floor(properties.VehicleProperties.engineHealth or 100.0),
+                    math.floor(properties.VehicleProperties.bodyHealthor or 100.0),
                     json.encode(properties.metadata),
                     plate
                }, function(result)
@@ -501,6 +501,21 @@ CreateCallback('keep-sharedgarages:server:GET:player_job_gang', function(source,
 end)
 
 CreateCallback('keep-sharedgarages:server:GET:garage_categories', function(source, cb, current_garage)
+     local function count_guest_vehicles(res)
+          local q = ''
+          local qq = 'SELECT COUNT(id_keep_garage_categories) FROM keep_garage WHERE garage = ? AND '
+          for key, c in ipairs(res) do
+               local string = 'id_keep_garage_categories != ' .. c.id
+               if key > 1 then
+                    string = ' AND id_keep_garage_categories != ' .. c.id
+               end
+               q = q .. string
+          end
+          qq = qq .. q
+          -- check for default but for guest vehicles
+          return MySQL.Sync.fetchScalar(qq, { current_garage })
+     end
+
      MySQL.Async.fetchAll('SELECT * FROM keep_garage_categories WHERE garage = ?', { current_garage }, function(res)
           for key, c in pairs(res) do
                c.count = MySQL.Sync.fetchScalar('SELECT COUNT(id_keep_garage_categories) FROM keep_garage WHERE id_keep_garage_categories = ?', { c.id })
@@ -508,13 +523,32 @@ CreateCallback('keep-sharedgarages:server:GET:garage_categories', function(sourc
 
           -- check for default category
           local default_count = MySQL.Sync.fetchScalar('SELECT COUNT(id_keep_garage_categories) FROM keep_garage WHERE id_keep_garage_categories = ?', { 0 })
+          local default_index = #res + 1
           if default_count > 0 then
-               res[#res + 1] = {
+               res[default_index] = {
                     id = 0,
                     name = 'default',
                     count = default_count
                }
           end
+
+          -- guest vehicles are vehicles that doesn't belong to this garage
+          local guests = count_guest_vehicles(res)
+
+          if guests > 0 then
+               local count = 0
+               if not res[default_index] then
+                    count = 0 + guests
+               else
+                    count = res[default_index].count + guests
+               end
+               res[default_index] = {
+                    id = 0,
+                    name = 'default',
+                    count = count
+               }
+          end
+
           cb(res)
      end)
 end)
@@ -534,9 +568,55 @@ CreateCallback('keep-sharedgarages:server:GET:vehicles_on_category', function(so
           end)
      end
 
+     local function get_guest_vehicles(res)
+          local q = ''
+          local qq = 'SELECT * FROM keep_garage WHERE garage = ? AND '
+          for key, c in ipairs(res) do
+               local string = 'id_keep_garage_categories != ' .. c.id
+               if key > 1 then
+                    string = ' AND id_keep_garage_categories != ' .. c.id
+               end
+               q = q .. string
+          end
+          qq = qq .. q
+          -- check for default but for guest vehicles
+          return MySQL.Sync.fetchAll(qq, { current_garage })
+     end
+
      local function send_vehicles_list(category_id)
           local tmp = {}
           MySQL.Async.fetchAll('SELECT * FROM keep_garage WHERE id_keep_garage_categories = ? AND garage = ?', { category_id, current_garage }, function(vehicles)
+               if category_id == 0 then
+                    MySQL.Async.fetchAll('SELECT * FROM keep_garage_categories WHERE garage = ?', { current_garage }, function(res)
+                         local guests = get_guest_vehicles(res)
+
+                         for key, vehicle in pairs(guests) do
+                              if tmp[vehicle.model] == nil then
+                                   tmp[vehicle.model] = {}
+                              end
+                              vehicle.mods = json.decode(vehicle.mods)
+                              vehicle.metadata = json.decode(vehicle.metadata)
+                              vehicle.permissions = json.decode(vehicle.permissions)
+                              vehicle.current_player_id = Player.PlayerData.citizenid
+                              tmp[#tmp + 1] = vehicle
+                         end
+
+                         -- vehicles the are acually on default category
+                         for key, vehicle in pairs(vehicles) do
+                              if tmp[vehicle.model] == nil then
+                                   tmp[vehicle.model] = {}
+                              end
+                              vehicle.mods = json.decode(vehicle.mods)
+                              vehicle.metadata = json.decode(vehicle.metadata)
+                              vehicle.permissions = json.decode(vehicle.permissions)
+                              vehicle.current_player_id = Player.PlayerData.citizenid
+                              tmp[#tmp + 1] = vehicle
+                         end
+                         cb(tmp)
+                    end)
+                    return
+               end
+
                for key, vehicle in pairs(vehicles) do
                     if tmp[vehicle.model] == nil then
                          tmp[vehicle.model] = {}
@@ -547,6 +627,7 @@ CreateCallback('keep-sharedgarages:server:GET:vehicles_on_category', function(so
                     vehicle.current_player_id = Player.PlayerData.citizenid
                     tmp[#tmp + 1] = vehicle
                end
+
                cb(tmp)
           end)
      end
