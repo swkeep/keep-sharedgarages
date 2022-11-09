@@ -503,9 +503,9 @@ end)
 CreateCallback('keep-sharedgarages:server:GET:garage_categories', function(source, cb, current_garage)
      local function count_guest_vehicles(res)
           local q = ''
-          local qq = 'SELECT COUNT(id_keep_garage_categories) FROM keep_garage WHERE garage = ? AND '
+          local qq = 'SELECT COUNT(id_keep_garage_categories) FROM keep_garage WHERE garage = ? '
           for key, c in ipairs(res) do
-               local string = 'id_keep_garage_categories != ' .. c.id
+               local string = 'AND id_keep_garage_categories != ' .. c.id
                if key > 1 then
                     string = ' AND id_keep_garage_categories != ' .. c.id
                end
@@ -570,9 +570,9 @@ CreateCallback('keep-sharedgarages:server:GET:vehicles_on_category', function(so
 
      local function get_guest_vehicles(res)
           local q = ''
-          local qq = 'SELECT * FROM keep_garage WHERE garage = ? AND '
+          local qq = 'SELECT * FROM keep_garage WHERE garage = ? '
           for key, c in ipairs(res) do
-               local string = 'id_keep_garage_categories != ' .. c.id
+               local string = 'AND id_keep_garage_categories != ' .. c.id
                if key > 1 then
                     string = ' AND id_keep_garage_categories != ' .. c.id
                end
