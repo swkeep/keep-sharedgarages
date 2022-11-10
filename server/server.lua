@@ -339,7 +339,7 @@ RegisterNetEvent("keep-sharedgarages:server:update_state", function(plate, prope
                     properties.currentgarage,
                     math.floor(properties.VehicleProperties.fuelLevel or 0),
                     math.floor(properties.VehicleProperties.engineHealth or 100.0),
-                    math.floor(properties.VehicleProperties.bodyHealthor or 100.0),
+                    math.floor(properties.VehicleProperties.bodyHealth or 100.0),
                     json.encode(properties.metadata),
                     plate
                }, function(result)
