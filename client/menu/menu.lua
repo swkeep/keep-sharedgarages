@@ -9,15 +9,13 @@
 -- https://github.com/swkeep
 
 local QBCore = exports['qb-core']:GetCoreObject()
-local keep_menu = {}
 local currentVeh = {}
+keep_menu = {}
 
 function Open_menu()
-     Config.menu = 'keep-menu'
-     if Config.menu == 'keep-menu' then
-          keep_menu:garage_menu()
-          return
-     end
+     if Config.Menu == "qb-menu" then return qb_menu:garage_menu() end
+
+     keep_menu:garage_menu()
 end
 
 AddEventHandler('keep-sharedgarages:menu:open:garage_menu', function(option)
@@ -26,7 +24,7 @@ end)
 
 ---------------------------------------------------- functions ------------------------------------------
 
-local function split(s, delimiter)
+function split(s, delimiter)
      if s == '' then return end
      local result = {};
      for match in (s .. delimiter):gmatch("(.-)" .. delimiter) do
@@ -35,7 +33,7 @@ local function split(s, delimiter)
      return result;
 end
 
-local function is_restricted_by_grades(vehicle)
+function is_restricted_by_grades(vehicle)
      for key, value in pairs(vehicle.permissions.grades) do
           if value then
                return value
@@ -44,7 +42,7 @@ local function is_restricted_by_grades(vehicle)
      return false
 end
 
-local function check_grades(vehicle)
+function check_grades(vehicle)
      local garage = GetCurrentgarageData()
      if garage and garage.type == 'job' then
           for key, value in pairs(vehicle.permissions.grades) do
@@ -62,14 +60,14 @@ local function check_grades(vehicle)
      return false
 end
 
-local function is_restricted_by_cid(vehicle)
+function is_restricted_by_cid(vehicle)
      if string.len(vehicle.permissions.cids) == 0 then
           return false
      end
      return true
 end
 
-local function check_cids(vehicle)
+function check_cids(vehicle)
      local cids = split(vehicle.permissions.cids, ",")
      for key, value in pairs(cids) do
           if vehicle.current_player_id == value then
@@ -79,7 +77,7 @@ local function check_cids(vehicle)
      return false
 end
 
-local function cidWhiteListed(garage)
+function cidWhiteListed(garage)
      if not Config.Garages[garage] then return false end
      if not Config.Garages[garage].garage_management then return false end
      local citizenid = QBCore.Functions.GetPlayerData().citizenid
@@ -234,7 +232,7 @@ function keep_menu:categories()
      end, GetCurrentgarage())
 end
 
-local function get_vehicle_data(model)
+function get_vehicle_data(model)
      local list = Config.Garages[GetCurrentgarage()].WhiteList
      model = tonumber(model)
      if list.allow_all then
@@ -374,7 +372,11 @@ function keep_menu:vehicle_actions_menu(vehicle, veh_data, category)
      if is_restricted_by_cid(vehicle) then
           if check_cids(vehicle) == false then
                TriggerServerEvent('keep-sharedgarages:server:Notification', 'This vehicle is not allowed for you', 'error')
-               keep_menu:vehicles_inside_category(category)
+               if Config.Menu == "keep-menu" then 
+                    keep_menu:vehicles_inside_category(category)
+               elseif Config.Menu == "qb-menu" then
+                    qb_menu:vehicles_inside_category(category)
+               end
                return
           end
      end
@@ -382,21 +384,33 @@ function keep_menu:vehicle_actions_menu(vehicle, veh_data, category)
      if is_restricted_by_grades(vehicle) then
           if check_grades(vehicle) == false then
                TriggerServerEvent('keep-sharedgarages:server:Notification', 'This vehicle is not allowed for your rank', 'error')
-               keep_menu:vehicles_inside_category(category)
+               if Config.Menu == "keep-menu" then 
+                    keep_menu:vehicles_inside_category(category)
+               elseif Config.Menu == "qb-menu" then
+                    qb_menu:vehicles_inside_category(category)
+               end
                return
           end
      end
 
      if vehicle.state == 0 then
           TriggerServerEvent('keep-sharedgarages:server:Notification', 'Vehicle is already out!', 'error')
-          keep_menu:vehicles_inside_category(category)
+          if Config.Menu == "keep-menu" then 
+               keep_menu:vehicles_inside_category(category)
+          elseif Config.Menu == "qb-menu" then
+               qb_menu:vehicles_inside_category(category)
+          end
           return
      end
 
      TriggerCallback('keep-sharedgarages:server:doesVehicleExist', function(result, per)
           if result == true then
                TriggerServerEvent('keep-sharedgarages:server:Notification', 'Vehicle is already out!', 'error')
-               keep_menu:vehicles_inside_category(category)
+               if Config.Menu == "keep-menu" then 
+                    keep_menu:vehicles_inside_category(category)
+               elseif Config.Menu == "qb-menu" then
+                    qb_menu:vehicles_inside_category(category)
+               end
                return
           end
 
@@ -424,12 +438,16 @@ function keep_menu:vehicle_actions_menu(vehicle, veh_data, category)
                     plate = vehicle.plate
                })
                RecoverVehicleDamages(veh, vehicle)
-               keep_menu:take_out_menu(veh_data, vehicle, veh, per, category)
+               if Config.Menu == "keep-menu" then
+                    keep_menu:take_out_menu(veh_data, vehicle, veh, per, category)
+               elseif Config.Menu == "qb-menu" then
+                    qb_menu:take_out_menu(veh_data, vehicle, veh, per, category)
+               end
           end, Config.Garages[currentgarage].spawnPoint[nearspawnpoint], true)
      end, vehicle.plate, GetCurrentgarage())
 end
 
-local function RGB(condtition)
+function RGB(condtition)
      local num_in_255 = function(num)
           if num == 0 then return 0 end
           return math.ceil((num * 255) / 100)

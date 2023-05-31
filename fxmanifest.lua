@@ -14,6 +14,7 @@ client_scripts {
      'client/lib.lua',
      'client/client.lua',
      'client/menu/menu.lua',
+     'client/menu/qbmenu.lua',
      'client/menu/functions.lua',
      'dev-tool/client.lua' --no-commit
 }
