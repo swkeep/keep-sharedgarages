@@ -1,5 +1,7 @@
 Config = Config or {}
 
+Config.Menu = 'keep-menu' -- Change This to 'qb-menu', if you would like to use qb-menu instead of keep-menu
+
 Config.fuel_script = 'LegacyFuel' --LegacyFuel
 
 Config.MagicTouch = false
